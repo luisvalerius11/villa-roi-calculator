@@ -1,0 +1,2641 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Villa ROI Calculator — Hospitality Underwriting Dashboard</title>
+  <meta name="description" content="Premium villa investment underwriting dashboard with apple-to-apple yield benchmarking against deposits, bonds, T-bills, money market funds and REIT dividend yields." />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+/* ============================================================
+   Villa ROI Calculator — Premium underwriting dashboard styles
+   ============================================================ */
+
+:root {
+  /* Light theme (default) */
+  --bg: #f6f7f9;
+  --bg-elev: #ffffff;
+  --bg-sunk: #eef0f4;
+  --panel: #ffffff;
+  --panel-2: #fbfbfc;
+  --border: #e3e6ec;
+  --border-strong: #c9cfd9;
+  --text: #0f1722;
+  --text-muted: #5b6573;
+  --text-faint: #8b94a3;
+  --accent: #b8893a;      /* muted gold */
+  --accent-2: #1f2a44;    /* deep ink */
+  --positive: #1a7f5a;
+  --negative: #b1392b;
+  --warn: #b87f1f;
+  --info: #2c5a8a;
+  --chip-bg: #eef1f6;
+  --chip-text: #3c4656;
+  --row-hover: #f3f5f8;
+  --table-stripe: #fafbfc;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 34, 0.05);
+  --shadow: 0 4px 14px rgba(15, 23, 34, 0.06), 0 1px 2px rgba(15, 23, 34, 0.04);
+  --radius: 6px;
+  --radius-sm: 4px;
+  --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --grid-line: rgba(15, 23, 34, 0.06);
+}
+
+[data-theme="dark"] {
+  --bg: #0b0f17;
+  --bg-elev: #11161f;
+  --bg-sunk: #0a0e15;
+  --panel: #131923;
+  --panel-2: #161d29;
+  --border: #1f2734;
+  --border-strong: #2a3445;
+  --text: #e6ebf2;
+  --text-muted: #9aa5b6;
+  --text-faint: #6c7689;
+  --accent: #d4a253;
+  --accent-2: #c9d2e3;
+  --positive: #4ec48a;
+  --negative: #e26a5b;
+  --warn: #e0a949;
+  --info: #6fa6dd;
+  --chip-bg: #1c2532;
+  --chip-text: #c1c9d5;
+  --row-hover: #1a2230;
+  --table-stripe: #141a25;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow: 0 6px 18px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  --grid-line: rgba(255, 255, 255, 0.06);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: var(--info); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ----------------------------- Top bar ----------------------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: saturate(140%) blur(6px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  font-size: 13.5px;
+}
+.brand .dot {
+  width: 9px; height: 9px; border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px rgba(184,137,58,0.18);
+}
+.brand .sub {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 11.5px;
+  margin-left: 4px;
+}
+
+.topbar .spacer { flex: 1; }
+
+.topbar .group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.btn, select, input, textarea {
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 9px;
+  outline: none;
+  transition: border-color .15s, background .15s;
+}
+
+input[type="number"], input[type="text"], input[type="url"], select, textarea {
+  font-variant-numeric: tabular-nums;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+}
+
+.btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+.btn:hover { background: var(--row-hover); }
+.btn.primary {
+  background: var(--accent-2);
+  color: #fff;
+  border-color: var(--accent-2);
+}
+[data-theme="dark"] .btn.primary { color: #0b0f17; background: var(--accent-2); }
+.btn.ghost { background: transparent; }
+.btn.gold {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn.gold:hover { background: rgba(184,137,58,0.08); }
+.btn.sm { padding: 4px 7px; font-size: 11.5px; }
+
+/* ----------------------------- Layout ----------------------------- */
+.shell {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 16px 18px 60px;
+}
+
+.grid {
+  display: grid;
+  gap: 14px;
+}
+
+.section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 18px 2px 8px;
+}
+.section-title h2 {
+  font-size: 13px;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.section-title .hint {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.section-title .right {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.panel .hd {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.panel .hd .right { margin-left: auto; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-faint); font-size: 11px; }
+.panel .bd { padding: 12px; }
+.panel .bd.tight { padding: 8px 10px; }
+.panel .bd.flush { padding: 0; }
+
+/* ----------------------------- KPI strip ----------------------------- */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 10px;
+  margin-top: 6px;
+}
+.kpi {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 11px 11px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi .label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.kpi .val {
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--mono);
+  letter-spacing: -0.2px;
+}
+.kpi .sub {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.kpi .accentbar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  opacity: 0.7;
+}
+.kpi.pos .accentbar { background: var(--positive); }
+.kpi.neg .accentbar { background: var(--negative); }
+.kpi.warn .accentbar { background: var(--warn); }
+
+@media (max-width: 1200px) { .kpis { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 640px)  { .kpis { grid-template-columns: repeat(2, 1fr); } }
+
+/* ----------------------------- Two-column layout ----------------------------- */
+.cols {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 14px;
+}
+@media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } }
+
+/* ----------------------------- Assumptions ----------------------------- */
+.assumption-group { border-bottom: 1px solid var(--border); }
+.assumption-group:last-child { border-bottom: none; }
+.assumption-group > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 9px 12px;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  user-select: none;
+}
+.assumption-group > summary::-webkit-details-marker { display: none; }
+.assumption-group > summary:before {
+  content: "›";
+  display: inline-block;
+  transform: rotate(0deg);
+  transition: transform .15s;
+  color: var(--text-faint);
+  font-weight: 400;
+  width: 10px;
+}
+.assumption-group[open] > summary:before { transform: rotate(90deg); }
+.assumption-group .gbody {
+  padding: 4px 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 10px;
+}
+.assumption-group .gbody.one { grid-template-columns: 1fr; }
+
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field.full { grid-column: 1 / -1; }
+.field label {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.field .input-wrap {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  overflow: hidden;
+}
+.field .input-wrap:focus-within { border-color: var(--accent); }
+.field .input-wrap input,
+.field .input-wrap select {
+  border: none;
+  background: transparent;
+  flex: 1;
+  width: 100%;
+  padding: 6px 8px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+.field .input-wrap .prefix,
+.field .input-wrap .suffix {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  font-size: 11px;
+  color: var(--text-faint);
+  background: var(--bg-sunk);
+  font-family: var(--mono);
+}
+.field .input-wrap .prefix { border-right: 1px solid var(--border); }
+.field .input-wrap .suffix { border-left: 1px solid var(--border); }
+
+/* tag chips for data provenance */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  border: 1px solid var(--border);
+}
+.tag.user    { background: rgba(44,90,138,0.10);  color: var(--info); border-color: rgba(44,90,138,0.25); }
+.tag.market  { background: rgba(184,137,58,0.10); color: var(--accent); border-color: rgba(184,137,58,0.3); }
+.tag.web     { background: rgba(26,127,90,0.10);  color: var(--positive); border-color: rgba(26,127,90,0.25); }
+.tag.yield   { background: rgba(184,127,31,0.10); color: var(--warn); border-color: rgba(184,127,31,0.3); }
+.tag.derived { background: rgba(120,120,140,0.10); color: var(--text-muted); border-color: var(--border-strong); }
+.tag.scenario{ background: rgba(177,57,43,0.10);  color: var(--negative); border-color: rgba(177,57,43,0.25); }
+
+/* tooltip with formula */
+.tip { position: relative; cursor: help; border-bottom: 1px dotted var(--text-faint); }
+.tip:hover .tipbox { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.tipbox {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  width: 260px;
+  z-index: 50;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .15s, transform .15s;
+  box-shadow: var(--shadow);
+  font-family: var(--mono);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  pointer-events: none;
+  white-space: normal;
+}
+
+/* ----------------------------- Tables ----------------------------- */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.tbl th, .tbl td {
+  padding: 7px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+.tbl th {
+  font-weight: 600;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  background: var(--panel-2);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.tbl td:first-child, .tbl th:first-child { text-align: left; }
+.tbl tr:hover td { background: var(--row-hover); }
+.tbl tr.totals td {
+  font-weight: 600;
+  background: var(--bg-sunk);
+  border-top: 1px solid var(--border-strong);
+}
+.tbl td.num { font-family: var(--mono); }
+.tbl td.pos { color: var(--positive); }
+.tbl td.neg { color: var(--negative); }
+.tbl td input, .tbl td select {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 4px 6px;
+  text-align: right;
+}
+.tbl td input.txt { text-align: left; }
+
+.tbl-wrap { max-height: 360px; overflow: auto; }
+.tbl-wrap.tall { max-height: 520px; }
+
+/* Sensitivity heatmap */
+.heat {
+  display: grid;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.heat .hcell {
+  background: var(--panel);
+  padding: 6px 8px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.heat .hcell.head {
+  background: var(--panel-2);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.heat .hcell.corner { background: var(--bg-sunk); }
+
+/* ----------------------------- Score / memo ----------------------------- */
+.score-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+}
+.score-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--panel-2);
+}
+.score-card .lbl { font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+.score-card .val { font-size: 28px; font-weight: 600; font-family: var(--mono); margin-top: 2px; }
+.score-card .bar { height: 6px; border-radius: 3px; background: var(--bg-sunk); margin-top: 8px; overflow: hidden; }
+.score-card .bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), #e0bf78); }
+.score-card .rec {
+  margin-top: 8px; display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 10px;
+  background: var(--chip-bg); color: var(--chip-text);
+}
+.rec.attractive { background: rgba(26,127,90,0.12); color: var(--positive); }
+.rec.watchlist  { background: rgba(184,127,31,0.15); color: var(--warn); }
+.rec.caution    { background: rgba(177,57,43,0.12); color: var(--negative); }
+.rec.uninvestable { background: rgba(0,0,0,0.15); color: var(--text); }
+
+.memo {
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.memo h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); }
+.memo p { margin: 0 0 8px; }
+.memo .num { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+.memo .pos { color: var(--positive); }
+.memo .neg { color: var(--negative); }
+
+/* ----------------------------- Charts ----------------------------- */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+@media (max-width: 1000px) { .charts-grid { grid-template-columns: 1fr; } }
+.chart-box { height: 280px; padding: 8px 10px 10px; }
+.chart-box.tall { height: 340px; }
+
+/* ----------------------------- Risk matrix ----------------------------- */
+.risk-matrix .tbl td:not(:first-child) { text-align: center; }
+.dot-rating {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin: 0 1px;
+  background: var(--border-strong);
+}
+.dot-rating.on { background: var(--accent); }
+
+/* ----------------------------- Misc ----------------------------- */
+.row { display: flex; align-items: center; gap: 8px; }
+.row.between { justify-content: space-between; }
+.muted { color: var(--text-muted); }
+.faint { color: var(--text-faint); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.pos { color: var(--positive); }
+.neg { color: var(--negative); }
+.warn { color: var(--warn); }
+.right { text-align: right; }
+.nowrap { white-space: nowrap; }
+.hidden { display: none !important; }
+
+.notice {
+  background: rgba(184,137,58,0.08);
+  border: 1px solid rgba(184,137,58,0.25);
+  color: var(--accent);
+  padding: 8px 11px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+footer.appfoot {
+  margin-top: 28px;
+  padding: 18px 4px 8px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+footer.appfoot h4 {
+  margin: 8px 0 4px;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text);
+}
+
+/* print */
+@media print {
+  .topbar, .btn, .no-print { display: none !important; }
+  body { background: #fff; color: #000; font-size: 11px; }
+  .panel, .kpi { box-shadow: none; border-color: #ccc; }
+  .charts-grid { grid-template-columns: 1fr; }
+  .chart-box { height: 240px; }
+}
+
+  </style>
+</head>
+<body>
+<!-- ====================== TOPBAR ====================== -->
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    Villa ROI Calculator
+    <span class="sub">/ Hospitality underwriting & yield benchmarking</span>
+  </div>
+  <span class="spacer"></span>
+  <div class="group">
+    <label for="market">Investor market</label>
+    <select id="market"></select>
+  </div>
+  <div class="group">
+    <label for="currency">Deal ccy</label>
+    <select id="currency"></select>
+  </div>
+  <div class="group">
+    <button class="btn sm" id="exportJson" title="Download all assumptions as JSON">Export JSON</button>
+    <button class="btn sm" id="exportSummary">Underwriting CSV</button>
+    <button class="btn sm" id="exportComps">Comps CSV</button>
+    <button class="btn sm" id="exportBench">Benchmarks CSV</button>
+    <button class="btn sm" id="copyMemo">Copy Memo</button>
+    <button class="btn sm" id="printPdf">Print / PDF</button>
+  </div>
+  <button class="btn sm ghost" id="themeToggle" title="Toggle theme">◐ Theme</button>
+</header>
+
+<main class="shell">
+
+  <!-- ====================== KPI STRIP ====================== -->
+  <section id="kpiStrip" class="kpis"></section>
+
+  <!-- ====================== TWO-COLUMN ====================== -->
+  <section class="cols" style="margin-top:14px;">
+
+    <!-- Assumptions panel -->
+    <aside class="panel">
+      <div class="hd">
+        Assumptions
+        <span class="right">Edit any value <span class="tag user">User Input</span></span>
+      </div>
+      <div class="bd flush">
+        <details class="assumption-group" open>
+          <summary>Identity</summary>
+          <div class="gbody">
+            <div class="field full"><label>Villa name</label>
+              <div class="input-wrap"><input id="villaName" type="text" /></div>
+            </div>
+            <div class="field"><label>Location</label>
+              <div class="input-wrap"><input id="location" type="text" /></div>
+            </div>
+            <div class="field"><label>Bedrooms</label>
+              <div class="input-wrap"><input id="bedrooms" type="number" min="1" step="1" /></div>
+            </div>
+            <div class="field"><label>Land (sqm)</label>
+              <div class="input-wrap"><input id="landSqm" type="number" min="0" step="10" /><span class="suffix">m²</span></div>
+            </div>
+            <div class="field"><label>Building (sqm)</label>
+              <div class="input-wrap"><input id="buildSqm" type="number" min="0" step="10" /><span class="suffix">m²</span></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="assumption-group" open>
+          <summary>Acquisition</summary>
+          <div class="gbody">
+            <div class="field full"><label>Purchase price <span class="tip">ⓘ<span class="tipbox">Asking or contract price for the asset.</span></span></label>
+              <div class="input-wrap"><span class="prefix" id="ccySym1">$</span><input id="purchasePrice" type="number" min="0" step="1000" /></div>
+            </div>
+            <div class="field"><label>Closing costs %</label>
+              <div class="input-wrap"><input id="closingCostsPct" type="number" step="0.1" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Legal / tax fees</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym2">$</span><input id="legalFees" type="number" step="1000" /></div>
+            </div>
+            <div class="field"><label>Renovation</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym3">$</span><input id="renovationCost" type="number" step="1000" /></div>
+            </div>
+            <div class="field"><label>Furnishing / pre-open</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym4">$</span><input id="furnishingCost" type="number" step="1000" /></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="assumption-group" open>
+          <summary>Financing</summary>
+          <div class="gbody">
+            <div class="field"><label>LTV % <span class="tip">ⓘ<span class="tipbox">Loan-to-Value on purchase price. Loan = LTV × Purchase.</span></span></label>
+              <div class="input-wrap"><input id="ltvPct" type="number" step="1" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Interest rate</label>
+              <div class="input-wrap"><input id="interestRatePct" type="number" step="0.05" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Loan term (yrs)</label>
+              <div class="input-wrap"><input id="loanTermYears" type="number" step="1" /><span class="suffix">y</span></div>
+            </div>
+            <div class="field"><label>Interest-only (yrs)</label>
+              <div class="input-wrap"><input id="ioPeriodYears" type="number" step="1" /><span class="suffix">y</span></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="assumption-group" open>
+          <summary>Operations (Year 1)</summary>
+          <div class="gbody">
+            <div class="field"><label>ADR <span class="tip">ⓘ<span class="tipbox">Average Daily Rate per occupied night.</span></span></label>
+              <div class="input-wrap"><span class="prefix" id="ccySym5">$</span><input id="adr" type="number" step="10" /></div>
+            </div>
+            <div class="field"><label>Occupancy %</label>
+              <div class="input-wrap"><input id="occupancyPct" type="number" step="1" min="0" max="100" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Nights available</label>
+              <div class="input-wrap"><input id="nightsAvailable" type="number" step="1" min="0" max="365" /><span class="suffix">n</span></div>
+            </div>
+            <div class="field"><label>Other income</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym6">$</span><input id="otherIncome" type="number" step="500" /></div>
+            </div>
+            <div class="field"><label>Mgmt fee (% gross)</label>
+              <div class="input-wrap"><input id="mgmtFeePct" type="number" step="0.5" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>OTA / platform (% gross)</label>
+              <div class="input-wrap"><input id="otaFeePct" type="number" step="0.5" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Staff / housekeeping</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym7">$</span><input id="staffCost" type="number" step="500" /></div>
+            </div>
+            <div class="field"><label>Utilities</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym8">$</span><input id="utilities" type="number" step="500" /></div>
+            </div>
+            <div class="field"><label>Insurance</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym9">$</span><input id="insurance" type="number" step="500" /></div>
+            </div>
+            <div class="field"><label>Property tax</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym10">$</span><input id="propertyTax" type="number" step="500" /></div>
+            </div>
+            <div class="field"><label>Repairs / maintenance</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym11">$</span><input id="repairsMaintenance" type="number" step="500" /></div>
+            </div>
+            <div class="field"><label>CapEx reserve (% gross)</label>
+              <div class="input-wrap"><input id="capexReservePct" type="number" step="0.5" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Marketing</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym12">$</span><input id="marketing" type="number" step="500" /></div>
+            </div>
+            <div class="field"><label>Misc opex</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym13">$</span><input id="miscOpex" type="number" step="500" /></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="assumption-group">
+          <summary>Growth & inflation</summary>
+          <div class="gbody">
+            <div class="field"><label>ADR growth %</label>
+              <div class="input-wrap"><input id="adrGrowthPct" type="number" step="0.1" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Occupancy ramp %</label>
+              <div class="input-wrap"><input id="occGrowthPct" type="number" step="0.1" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Opex inflation %</label>
+              <div class="input-wrap"><input id="opexInflationPct" type="number" step="0.1" /><span class="suffix">%</span></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="assumption-group" open>
+          <summary>Exit</summary>
+          <div class="gbody">
+            <div class="field"><label>Hold period (yrs)</label>
+              <div class="input-wrap"><input id="holdYears" type="number" step="1" min="1" max="20" /><span class="suffix">y</span></div>
+            </div>
+            <div class="field"><label>Exit method</label>
+              <div class="input-wrap"><select id="exitMethod">
+                <option value="capRate">Terminal cap rate</option>
+                <option value="appreciation">Appreciation rate</option>
+              </select></div>
+            </div>
+            <div class="field"><label>Exit cap rate %</label>
+              <div class="input-wrap"><input id="exitCapRatePct" type="number" step="0.1" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Appreciation %</label>
+              <div class="input-wrap"><input id="appreciationPct" type="number" step="0.1" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Selling costs %</label>
+              <div class="input-wrap"><input id="sellingCostsPct" type="number" step="0.1" /><span class="suffix">%</span></div>
+            </div>
+          </div>
+        </details>
+
+        <details class="assumption-group" open>
+          <summary>Capital Injection</summary>
+          <div class="gbody">
+            <div class="field"><label>Amount</label>
+              <div class="input-wrap"><span class="prefix" id="ccySym14">$</span><input id="injectionAmount" type="number" step="10000" /></div>
+            </div>
+            <div class="field"><label>Type</label>
+              <div class="input-wrap"><select id="injectionType">
+                <option>Equity</option>
+                <option>Shareholder Loan</option>
+                <option>Mezzanine</option>
+                <option>Preferred Equity</option>
+              </select></div>
+            </div>
+            <div class="field"><label>Ownership %</label>
+              <div class="input-wrap"><input id="ownershipPct" type="number" step="1" /><span class="suffix">%</span></div>
+            </div>
+            <div class="field"><label>Pref. return %</label>
+              <div class="input-wrap"><input id="prefReturnPct" type="number" step="0.5" /><span class="suffix">%</span></div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </aside>
+
+    <!-- Right column: outputs -->
+    <div class="grid" style="gap:14px;">
+
+      <!-- ====================== UNDERWRITING SUMMARY ====================== -->
+      <div class="panel">
+        <div class="hd">
+          Underwriting summary
+          <span class="right" id="uwSubtitle"></span>
+        </div>
+        <div class="bd" id="uwSummary"></div>
+      </div>
+
+      <!-- ====================== CAPITAL INJECTION ====================== -->
+      <div class="panel">
+        <div class="hd">
+          Capital Injection — return on injected capital
+          <span class="right" id="injMeta"></span>
+        </div>
+        <div class="bd" id="injPanel"></div>
+      </div>
+
+      <!-- ====================== CHARTS ROW 1 ====================== -->
+      <div class="charts-grid">
+        <div class="panel">
+          <div class="hd">Villa metrics vs Yield Benchmarks <span class="right faint">apples-to-apples income comparison</span></div>
+          <div class="bd flush"><div class="chart-box"><canvas id="chartYieldCompare"></canvas></div></div>
+        </div>
+        <div class="panel">
+          <div class="hd">IRR spread over benchmarks <span class="right faint">levered IRR − benchmark yield</span></div>
+          <div class="bd flush"><div class="chart-box"><canvas id="chartIRRSpread"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- ====================== CHARTS ROW 2 ====================== -->
+      <div class="charts-grid">
+        <div class="panel">
+          <div class="hd">Cash flow & cumulative equity <span class="right faint">over hold</span></div>
+          <div class="bd flush"><div class="chart-box"><canvas id="chartCashflow"></canvas></div></div>
+        </div>
+        <div class="panel">
+          <div class="hd">Exit value bridge <span class="right faint">gross exit → equity proceeds</span></div>
+          <div class="bd flush"><div class="chart-box"><canvas id="chartExit"></canvas></div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ====================== INCOME ALTERNATIVES BENCHMARK ====================== -->
+  <div class="section-title">
+    <h2>Income alternatives benchmark</h2>
+    <span class="hint">Yield comparators only — no equity index, no growth assets. Edit values inline.</span>
+    <span class="right">
+      <button class="btn sm" id="addBenchmark">+ Add benchmark</button>
+      <button class="btn sm" id="resetBenchmarks">Reset to market default</button>
+    </span>
+  </div>
+  <div class="panel">
+    <div class="hd">
+      <span id="marketLabel"></span>
+      <span class="right faint" id="marketNotes"></span>
+    </div>
+    <div class="bd flush">
+      <div class="tbl-wrap">
+        <table class="tbl" id="benchTable">
+          <thead>
+            <tr>
+              <th style="min-width:230px;">Benchmark</th>
+              <th>Type</th>
+              <th>Tenor</th>
+              <th>Yield %</th>
+              <th>vs Cap rate</th>
+              <th>vs CoC</th>
+              <th>vs IRR</th>
+              <th>Liquidity</th>
+              <th>Risk</th>
+              <th style="min-width:160px;">Source</th>
+              <th>Tag</th>
+              <th class="no-print"></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== COMPARABLE VILLA ASSETS ====================== -->
+  <div class="section-title">
+    <h2>Comparable villa assets</h2>
+    <span class="hint">Pull listing data, paste a URL, or edit inline. Used to bracket subject value.</span>
+    <span class="right">
+      <input id="compUrl" type="url" placeholder="Paste listing URL (parsed manually)..." style="width:320px;" />
+      <button class="btn sm" id="addCompFromUrl">+ From URL</button>
+      <button class="btn sm" id="addBlankComp">+ Blank row</button>
+    </span>
+  </div>
+  <div class="panel">
+    <div class="hd">
+      Comp set
+      <span class="right faint" id="compMeta"></span>
+    </div>
+    <div class="bd flush">
+      <div class="tbl-wrap">
+        <table class="tbl" id="compTable">
+          <thead>
+            <tr>
+              <th style="min-width:200px;">Name</th>
+              <th style="min-width:140px;">Location</th>
+              <th>Beds</th>
+              <th>Land m²</th>
+              <th>Build m²</th>
+              <th>Ask Price</th>
+              <th>Ccy</th>
+              <th>$/m²</th>
+              <th>ADR</th>
+              <th>Occ %</th>
+              <th>Implied gross/m²</th>
+              <th style="min-width:160px;">Source</th>
+              <th>Conf.</th>
+              <th>Tag</th>
+              <th class="no-print"></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== PROJECTIONS ====================== -->
+  <div class="section-title">
+    <h2>Cash flow projections</h2>
+    <span class="hint">Annual P&amp;L through hold period, then exit.</span>
+  </div>
+  <div class="panel">
+    <div class="hd">10-Year operating model <span class="right faint">all values derived <span class="tag derived">Derived</span></span></div>
+    <div class="bd flush">
+      <div class="tbl-wrap tall">
+        <table class="tbl" id="projTable"><thead></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== SENSITIVITY ====================== -->
+  <div class="section-title">
+    <h2>Sensitivity analysis</h2>
+    <span class="hint">Levered IRR (%) under varied ADR × Occupancy and Exit cap × Opex inflation.</span>
+  </div>
+  <div class="charts-grid">
+    <div class="panel">
+      <div class="hd">ADR × Occupancy → Levered IRR</div>
+      <div class="bd" id="heat1"></div>
+    </div>
+    <div class="panel">
+      <div class="hd">Exit Cap × Opex Inflation → Levered IRR</div>
+      <div class="bd" id="heat2"></div>
+    </div>
+  </div>
+
+  <!-- ====================== RISK / LIQUIDITY MATRIX ====================== -->
+  <div class="section-title">
+    <h2>Risk &amp; liquidity comparison matrix</h2>
+    <span class="hint">Side-by-side qualitative comparison: villa vs each benchmark group.</span>
+  </div>
+  <div class="panel risk-matrix">
+    <div class="bd flush">
+      <div class="tbl-wrap">
+        <table class="tbl" id="riskMatrix">
+          <thead>
+            <tr>
+              <th style="min-width:180px;">Dimension</th>
+              <th>Subject villa</th>
+              <th>Cash / Deposits</th>
+              <th>Govt bonds / T-bills</th>
+              <th>Money market</th>
+              <th>Listed REITs</th>
+              <th>Sukuk</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== SCORE + MEMO ====================== -->
+  <div class="section-title">
+    <h2>Investment score &amp; memo</h2>
+    <span class="hint">Scoring uses villa returns vs apple-to-apple yield comparators only.</span>
+  </div>
+  <div class="cols" style="grid-template-columns: 380px 1fr;">
+    <div class="panel">
+      <div class="hd">Score & risk rating</div>
+      <div class="bd flush">
+        <div class="score-wrap">
+          <div class="score-card">
+            <div class="lbl">Attractiveness</div>
+            <div class="val" id="scoreVal">—</div>
+            <div class="bar"><span id="scoreBar" style="width:0%"></span></div>
+            <div class="rec" id="scoreRec">—</div>
+          </div>
+          <div class="score-card">
+            <div class="lbl">Data confidence</div>
+            <div class="val" id="confVal">—</div>
+            <div class="bar"><span id="confBar" style="width:0%"></span></div>
+            <div class="rec" id="riskRec">—</div>
+          </div>
+        </div>
+        <div class="bd" id="scoreFactors"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="hd">Investment memo <span class="right faint">auto-generated narrative</span></div>
+      <div class="bd memo" id="memoBox"></div>
+    </div>
+  </div>
+
+  <!-- ====================== FOOTER NOTES ====================== -->
+  <footer class="appfoot">
+    <h4>Data sourcing & limitations</h4>
+    <p><strong>Villa comparables.</strong> This in-browser tool ships with editable mock comps. To add a comp from the web, paste a listing URL — the app creates a blank row prefilled with the URL so you can manually transfer ask price, beds, ADR and notes. Direct fetching of listing sites is typically blocked by CORS in pure browser code; a thin server-side proxy or scraping API (Apify, Bright Data, Scrapy Cloud, or a custom Cloudflare Worker) can be added to populate fields automatically.</p>
+    <h4>Yield benchmark data</h4>
+    <p>Benchmarks ship as editable defaults per market (Singapore, Australia, UK, France, Netherlands, Spain, Hong Kong, UAE, Indonesia). All values can be overridden inline. To wire live rates, attach: <em>SGS / SG T-bills</em> (MAS API), <em>Australian Government Bonds</em> (AOFM / RBA), <em>UK gilts</em> (DMO), <em>Eurozone sovereigns</em> (ECB SDW), <em>HKMA EFBN</em>, <em>UAE/Dubai bonds</em> (DFM API). REIT dividend yields can be sourced via FTSE EPRA NAREIT, iEdge S-REIT, or vendor APIs (Bloomberg, Refinitiv, EOD Historical). Bank deposit rates change too frequently for stable APIs — schedule a daily refresh job or maintain a manual board.</p>
+    <h4>Comparison philosophy</h4>
+    <p>This tool only benchmarks against <strong>income-oriented yield comparators</strong> that an income investor would actually consider: deposits, government bonds, T-bills, money market funds, REIT dividend yields, sukuk, and local property income funds. It deliberately omits equity indices, growth stocks, and venture-style return benchmarks because those are not apples-to-apples with property cash-yield investing. The relevant question this dashboard answers is: <em>does the villa earn a sufficient premium over conservative income alternatives to justify the illiquidity, operational burden, vacancy risk and CapEx burden of owning the asset?</em></p>
+    <h4>Browser-only limits</h4>
+    <p>This app is fully client-side. There is no backend, no cookies, no telemetry. All numbers are computed locally with JavaScript. To extend with live data, the easiest path is a thin server proxy (Cloudflare Worker / Vercel Edge Function) that exposes a few normalized endpoints — comp listings, sovereign yields, deposit rates, REIT dividend yields — which this UI can call directly.</p>
+  </footer>
+</main>
+
+<script>
+/* =========================================================
+   Villa ROI Calculator — Static data: markets, benchmarks, comps, defaults
+   ========================================================= */
+
+// ---- Currency formatting helpers ------------------------------------------------
+const CURRENCIES = {
+  USD: { sym: "$",  code: "USD", locale: "en-US" },
+  SGD: { sym: "S$", code: "SGD", locale: "en-SG" },
+  AUD: { sym: "A$", code: "AUD", locale: "en-AU" },
+  GBP: { sym: "£",  code: "GBP", locale: "en-GB" },
+  EUR: { sym: "€",  code: "EUR", locale: "de-DE" },
+  HKD: { sym: "HK$",code: "HKD", locale: "en-HK" },
+  AED: { sym: "AED",code: "AED", locale: "en-AE" },
+  IDR: { sym: "Rp", code: "IDR", locale: "id-ID" },
+};
+
+// ---- Investor markets — rules engine for yield comparators ---------------------
+// Each market lists its prioritized comparator instruments with plausible
+// reference yields (as of mid-2026 estimate, user can override anything inline).
+const MARKETS = {
+  SG: {
+    name: "Singapore",
+    currency: "SGD",
+    notes: "Prioritize SGS, T-bills, SG fixed deposits, S-REIT dividend yields.",
+    benchmarks: [
+      { name: "SG 6-Month T-bill",       type: "Treasury bill", tenor: "6M",  yield: 3.45, liquidity: "High",       risk: "Very Low", source: "MAS auction (illustrative)" },
+      { name: "Singapore Government Securities 10Y", type: "Government bond", tenor: "10Y", yield: 3.10, liquidity: "Medium-High", risk: "Very Low", source: "MAS / SGS" },
+      { name: "DBS / OCBC 12M Fixed Deposit", type: "Bank deposit", tenor: "12M", yield: 3.20, liquidity: "Low (lock-up)", risk: "Very Low", source: "Bank rate boards" },
+      { name: "S-REIT Index dividend yield", type: "Listed REIT", tenor: "n/a", yield: 6.20, liquidity: "High",       risk: "Moderate", source: "iEdge S-REIT index" },
+      { name: "SGD Money Market Fund",    type: "Money market fund", tenor: "n/a", yield: 3.35, liquidity: "High", risk: "Very Low", source: "SGD MMF average" },
+    ],
+  },
+  AU: {
+    name: "Australia",
+    currency: "AUD",
+    notes: "Prioritize AU term deposits, Australian Government Bonds, A-REIT dividend yields.",
+    benchmarks: [
+      { name: "AU Big-Four 12M Term Deposit", type: "Bank deposit", tenor: "12M", yield: 4.65, liquidity: "Low",        risk: "Very Low", source: "RBA / bank boards" },
+      { name: "Australian Government Bond 10Y", type: "Government bond", tenor: "10Y", yield: 4.30, liquidity: "Medium-High", risk: "Very Low", source: "AOFM" },
+      { name: "AGB 2Y",                   type: "Government bond", tenor: "2Y",  yield: 3.95, liquidity: "High", risk: "Very Low", source: "AOFM" },
+      { name: "A-REIT 200 dividend yield", type: "Listed REIT", tenor: "n/a", yield: 5.40, liquidity: "High", risk: "Moderate", source: "S&P/ASX 200 A-REIT" },
+      { name: "AUD Cash Mgmt Fund",       type: "Money market fund", tenor: "n/a", yield: 4.45, liquidity: "High", risk: "Very Low", source: "Bloomberg AusBond Bank Bill" },
+    ],
+  },
+  UK: {
+    name: "United Kingdom",
+    currency: "GBP",
+    notes: "Prioritize fixed-rate savings, UK gilts, UK REIT dividend yields.",
+    benchmarks: [
+      { name: "UK 1Y Fixed Savings",      type: "Bank deposit",      tenor: "1Y",  yield: 4.50, liquidity: "Low",  risk: "Very Low", source: "Top UK fixed-rate accounts" },
+      { name: "UK Gilt 10Y",              type: "Government bond",   tenor: "10Y", yield: 4.20, liquidity: "High", risk: "Very Low", source: "DMO" },
+      { name: "UK Gilt 2Y",               type: "Government bond",   tenor: "2Y",  yield: 4.05, liquidity: "High", risk: "Very Low", source: "DMO" },
+      { name: "FTSE EPRA NAREIT UK yield",type: "Listed REIT",       tenor: "n/a", yield: 5.20, liquidity: "High", risk: "Moderate", source: "EPRA index" },
+      { name: "GBP Money Market Fund",    type: "Money market fund", tenor: "n/a", yield: 4.40, liquidity: "High", risk: "Very Low", source: "SONIA-linked MMF" },
+    ],
+  },
+  FR: {
+    name: "France",
+    currency: "EUR",
+    notes: "Prioritize EUR deposits / livret, OAT government bonds, EU REIT income.",
+    benchmarks: [
+      { name: "Livret / 12M Term Deposit (EUR)", type: "Bank deposit", tenor: "12M", yield: 3.00, liquidity: "Medium", risk: "Very Low", source: "Banque de France rate panels" },
+      { name: "OAT 10Y",                  type: "Government bond",   tenor: "10Y", yield: 3.05, liquidity: "High", risk: "Very Low", source: "Agence France Trésor" },
+      { name: "OAT 2Y",                   type: "Government bond",   tenor: "2Y",  yield: 2.65, liquidity: "High", risk: "Very Low", source: "AFT" },
+      { name: "Euronext REIT Eurozone yield", type: "Listed REIT",   tenor: "n/a", yield: 5.30, liquidity: "High", risk: "Moderate", source: "Euronext IEIF REIT" },
+      { name: "EUR Money Market Fund",    type: "Money market fund", tenor: "n/a", yield: 3.10, liquidity: "High", risk: "Very Low", source: "€STR-linked MMF" },
+    ],
+  },
+  NL: {
+    name: "Netherlands",
+    currency: "EUR",
+    notes: "Prioritize EUR deposits, Dutch DSL bonds, European REIT income.",
+    benchmarks: [
+      { name: "NL 12M Bank Deposit",      type: "Bank deposit",      tenor: "12M", yield: 2.85, liquidity: "Medium", risk: "Very Low", source: "DNB rate surveys" },
+      { name: "Dutch DSL 10Y",            type: "Government bond",   tenor: "10Y", yield: 3.00, liquidity: "High", risk: "Very Low", source: "DSTA" },
+      { name: "Dutch DSL 2Y",             type: "Government bond",   tenor: "2Y",  yield: 2.55, liquidity: "High", risk: "Very Low", source: "DSTA" },
+      { name: "EPRA Europe REIT yield",   type: "Listed REIT",       tenor: "n/a", yield: 5.25, liquidity: "High", risk: "Moderate", source: "EPRA Europe" },
+      { name: "EUR Money Market Fund",    type: "Money market fund", tenor: "n/a", yield: 3.10, liquidity: "High", risk: "Very Low", source: "€STR MMF" },
+    ],
+  },
+  ES: {
+    name: "Spain",
+    currency: "EUR",
+    notes: "Prioritize Spanish bonds, EUR deposits, EU property income funds.",
+    benchmarks: [
+      { name: "ES 12M Bank Deposit",      type: "Bank deposit",      tenor: "12M", yield: 3.10, liquidity: "Medium", risk: "Very Low", source: "Banco de España" },
+      { name: "Spanish Bono 10Y",         type: "Government bond",   tenor: "10Y", yield: 3.40, liquidity: "High", risk: "Very Low", source: "Tesoro Público" },
+      { name: "Letras del Tesoro 12M",    type: "Treasury bill",     tenor: "12M", yield: 3.05, liquidity: "High", risk: "Very Low", source: "Tesoro Público" },
+      { name: "SOCIMI dividend yield",    type: "Listed REIT",       tenor: "n/a", yield: 5.60, liquidity: "Medium-High", risk: "Moderate", source: "BME SOCIMI panel" },
+      { name: "EUR Money Market Fund",    type: "Money market fund", tenor: "n/a", yield: 3.10, liquidity: "High", risk: "Very Low", source: "€STR MMF" },
+    ],
+  },
+  HK: {
+    name: "Hong Kong",
+    currency: "HKD",
+    notes: "Prioritize HKD deposits, HK government bonds, Link REIT-style yields.",
+    benchmarks: [
+      { name: "HKD 12M Time Deposit",     type: "Bank deposit",      tenor: "12M", yield: 4.10, liquidity: "Low",  risk: "Very Low", source: "HK retail bank rate boards" },
+      { name: "HKSAR Bond 10Y",           type: "Government bond",   tenor: "10Y", yield: 3.80, liquidity: "Medium", risk: "Very Low", source: "HKMA" },
+      { name: "HKMA Exchange Fund Bill 1Y", type: "Treasury bill",   tenor: "1Y",  yield: 4.20, liquidity: "High", risk: "Very Low", source: "HKMA EFBN" },
+      { name: "HK Listed Property Trust yield", type: "Listed REIT", tenor: "n/a", yield: 6.40, liquidity: "High", risk: "Moderate", source: "Hang Seng REIT" },
+      { name: "HKD Money Market Fund",    type: "Money market fund", tenor: "n/a", yield: 4.05, liquidity: "High", risk: "Very Low", source: "HIBOR-linked MMF" },
+    ],
+  },
+  AE: {
+    name: "UAE / Dubai",
+    currency: "AED",
+    notes: "Prioritize USD/AED deposits, sukuk, UAE bonds, Dubai income-property yields.",
+    benchmarks: [
+      { name: "AED 12M Bank Deposit",     type: "Bank deposit",      tenor: "12M", yield: 4.50, liquidity: "Low",  risk: "Very Low", source: "CBUAE rate panels" },
+      { name: "UAE Federal Bond 10Y",     type: "Government bond",   tenor: "10Y", yield: 4.70, liquidity: "Medium", risk: "Low",      source: "Ministry of Finance UAE" },
+      { name: "UAE Sovereign Sukuk 5Y",   type: "Sukuk",             tenor: "5Y",  yield: 4.85, liquidity: "Medium", risk: "Low",      source: "UAE sovereign sukuk panel" },
+      { name: "Dubai REIT / income fund yield", type: "Listed REIT", tenor: "n/a", yield: 7.20, liquidity: "Medium", risk: "Moderate", source: "DFM REIT segment" },
+      { name: "USD 12M Deposit (AED-pegged)", type: "Bank deposit",  tenor: "12M", yield: 5.10, liquidity: "Low",  risk: "Very Low", source: "Onshore USD deposit panels" },
+    ],
+  },
+  ID: {
+    name: "Indonesia",
+    currency: "IDR",
+    notes: "Prioritize IDR fixed deposits, INDOGB bonds, ID sukuk, local REIT yields.",
+    benchmarks: [
+      { name: "IDR 12M Fixed Deposit",    type: "Bank deposit",      tenor: "12M", yield: 5.25, liquidity: "Low",  risk: "Low",      source: "OJK / bank rate boards" },
+      { name: "INDOGB 10Y",               type: "Government bond",   tenor: "10Y", yield: 6.80, liquidity: "High", risk: "Low",      source: "DJPPR Kemenkeu" },
+      { name: "SBN Ritel / Sukuk Ritel",  type: "Sukuk",             tenor: "3Y",  yield: 6.40, liquidity: "Medium", risk: "Low",     source: "DJPPR retail issuance" },
+      { name: "ID DIRE / Property Income Fund", type: "Listed REIT", tenor: "n/a", yield: 7.50, liquidity: "Medium", risk: "Moderate", source: "IDX DIRE panel" },
+      { name: "IDR Money Market Fund",    type: "Money market fund", tenor: "n/a", yield: 5.10, liquidity: "High", risk: "Low",      source: "OJK MMF rata-rata" },
+    ],
+  },
+};
+
+// ---- Example villa comparables (preloaded mock) --------------------------------
+// User can edit, add rows, or paste a URL and parse manually.
+const DEFAULT_COMPS = [
+  {
+    name: "Villa Karma Ridge — Uluwatu",
+    location: "Uluwatu, Bali",
+    bedrooms: 4,
+    landSqm: 800,
+    buildSqm: 480,
+    askPrice: 2150000,
+    currency: "USD",
+    adr: 950,
+    occPct: 68,
+    notes: "Cliff-edge, ocean view, ~3y old",
+    source: "https://www.airbnb.com/ (illustrative comp)",
+    confidence: 0.7
+  },
+  {
+    name: "Canggu Beachside 5BR",
+    location: "Canggu, Bali",
+    bedrooms: 5,
+    landSqm: 650,
+    buildSqm: 520,
+    askPrice: 1850000,
+    currency: "USD",
+    adr: 720,
+    occPct: 75,
+    notes: "High-footfall area, mid-luxury",
+    source: "Listing aggregator (illustrative)",
+    confidence: 0.65
+  },
+  {
+    name: "Seminyak Boutique 4BR Pool Villa",
+    location: "Seminyak, Bali",
+    bedrooms: 4,
+    landSqm: 500,
+    buildSqm: 410,
+    askPrice: 1650000,
+    currency: "USD",
+    adr: 680,
+    occPct: 72,
+    notes: "Strong rental track record",
+    source: "Local broker comp (illustrative)",
+    confidence: 0.6
+  },
+  {
+    name: "Ubud Jungle Villa 3BR",
+    location: "Ubud, Bali",
+    bedrooms: 3,
+    landSqm: 1100,
+    buildSqm: 360,
+    askPrice: 1250000,
+    currency: "USD",
+    adr: 540,
+    occPct: 65,
+    notes: "Eco-luxury, riverfront",
+    source: "Direct seller (illustrative)",
+    confidence: 0.55
+  },
+  {
+    name: "Bingin Cliffside Designer 4BR",
+    location: "Bingin, Bali",
+    bedrooms: 4,
+    landSqm: 720,
+    buildSqm: 450,
+    askPrice: 2380000,
+    currency: "USD",
+    adr: 1020,
+    occPct: 70,
+    notes: "Architect-designed, branded mgmt",
+    source: "Luxury portal (illustrative)",
+    confidence: 0.7
+  },
+];
+
+// ---- Default assumptions (Bali villa worked example) ---------------------------
+const DEFAULT_ASSUMPTIONS = {
+  // identity
+  villaName: "Subject Villa — Uluwatu 4BR",
+  market: "SG",            // investor market
+  currency: "USD",         // deal currency
+  location: "Uluwatu, Bali",
+  bedrooms: 4,
+  landSqm: 750,
+  buildSqm: 470,
+  // acquisition
+  purchasePrice: 1450000,
+  closingCostsPct: 3.5,
+  furnishingCost: 90000,
+  renovationCost: 120000,
+  legalFees: 22000,
+  // financing
+  ltvPct: 45,
+  interestRatePct: 6.8,
+  loanTermYears: 20,
+  ioPeriodYears: 3,
+  // operations
+  adr: 820,
+  occupancyPct: 70,
+  nightsAvailable: 340,
+  otherIncome: 14000,
+  mgmtFeePct: 15,
+  otaFeePct: 4,
+  staffCost: 28000,
+  utilities: 9500,
+  insurance: 5500,
+  propertyTax: 6500,
+  repairsMaintenance: 8000,
+  capexReservePct: 3,
+  marketing: 5500,
+  miscOpex: 4000,
+  // growth assumptions
+  adrGrowthPct: 3.5,
+  occGrowthPct: 0.5,
+  opexInflationPct: 4.0,
+  // exit
+  holdYears: 7,
+  exitCapRatePct: 7.0,
+  appreciationPct: 3.0,
+  sellingCostsPct: 5.0,
+  exitMethod: "capRate",   // "capRate" or "appreciation"
+  // capital injection
+  injectionAmount: 900000,
+  injectionType: "Equity",
+  ownershipPct: 100,
+  prefReturnPct: 0,
+  prefReturnEnabled: false,
+  // tags
+};
+
+
+/* =========================================================
+   Villa ROI Calculator — Finance / underwriting engine
+   ========================================================= */
+
+// ---- Number / safety helpers ---------------------------------------------------
+const N = (v, d = 0) => {
+  const x = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(/[, _]/g, ""));
+  return isFinite(x) ? x : d;
+};
+const safeDiv = (a, b, fallback = null) => (b === 0 || !isFinite(b) ? fallback : a / b);
+const pct = (x) => (x == null || !isFinite(x) ? "—" : (x * 100).toFixed(2) + "%");
+const pct1 = (x) => (x == null || !isFinite(x) ? "—" : (x * 100).toFixed(1) + "%");
+const bps = (x) => (x == null || !isFinite(x) ? "—" : Math.round(x * 10000) + " bps");
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+function fmtMoney(v, ccy = "USD", compact = false) {
+  if (v == null || !isFinite(v)) return "—";
+  const c = CURRENCIES[ccy] || CURRENCIES.USD;
+  try {
+    return new Intl.NumberFormat(c.locale, {
+      style: "currency", currency: c.code,
+      maximumFractionDigits: compact ? 0 : 0,
+      notation: compact && Math.abs(v) >= 1e6 ? "compact" : "standard",
+    }).format(v);
+  } catch (e) {
+    return c.sym + Math.round(v).toLocaleString();
+  }
+}
+function fmtNum(v, dp = 2) {
+  if (v == null || !isFinite(v)) return "—";
+  return v.toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+function fmtX(v, dp = 2) {
+  if (v == null || !isFinite(v)) return "—";
+  return v.toFixed(dp) + "×";
+}
+
+// ---- Mortgage amortization -----------------------------------------------------
+function monthlyPayment(principal, annualRatePct, years) {
+  const r = annualRatePct / 100 / 12;
+  const n = years * 12;
+  if (r === 0) return principal / n;
+  return (principal * r) / (1 - Math.pow(1 + r, -n));
+}
+
+// Returns array of {year, interest, principal, balance, payment} after each year (year 1..holdYears)
+// Supports an initial interest-only period.
+function buildAmortization(principal, annualRatePct, years, ioYears, holdYears) {
+  const rMonthly = annualRatePct / 100 / 12;
+  let balance = principal;
+  const out = [];
+  const ioMonths = ioYears * 12;
+  // post-IO principal payments are amortized over remaining (years - ioYears)
+  const amortYears = Math.max(1, years - ioYears);
+  let pmtAfterIO = monthlyPayment(principal, annualRatePct, amortYears);
+
+  for (let y = 1; y <= holdYears; y++) {
+    let yearInterest = 0;
+    let yearPrincipal = 0;
+    for (let m = 1; m <= 12; m++) {
+      const monthIdx = (y - 1) * 12 + m;
+      const interest = balance * rMonthly;
+      let pmt, principalPaid;
+      if (monthIdx <= ioMonths) {
+        pmt = interest;
+        principalPaid = 0;
+      } else {
+        pmt = pmtAfterIO;
+        principalPaid = Math.min(balance, pmt - interest);
+        if (principalPaid < 0) principalPaid = 0;
+        balance -= principalPaid;
+      }
+      yearInterest += interest;
+      yearPrincipal += principalPaid;
+    }
+    out.push({
+      year: y,
+      interest: yearInterest,
+      principal: yearPrincipal,
+      debtService: yearInterest + yearPrincipal,
+      balance: Math.max(0, balance),
+    });
+  }
+  return out;
+}
+
+// ---- IRR solver (Newton then bisection) ----------------------------------------
+function npv(rate, cashflows) {
+  let v = 0;
+  for (let i = 0; i < cashflows.length; i++) v += cashflows[i] / Math.pow(1 + rate, i);
+  return v;
+}
+
+function irr(cashflows, guess = 0.1) {
+  // require at least one negative and one positive cash flow
+  let hasNeg = false, hasPos = false;
+  for (const c of cashflows) { if (c < 0) hasNeg = true; if (c > 0) hasPos = true; }
+  if (!hasNeg || !hasPos) return null;
+
+  // Newton-Raphson
+  let r = guess;
+  for (let i = 0; i < 80; i++) {
+    let f = 0, df = 0;
+    for (let t = 0; t < cashflows.length; t++) {
+      const denom = Math.pow(1 + r, t);
+      f  += cashflows[t] / denom;
+      df += (-t * cashflows[t]) / Math.pow(1 + r, t + 1);
+    }
+    if (Math.abs(f) < 1e-7) return r;
+    if (df === 0 || !isFinite(df)) break;
+    const newR = r - f / df;
+    if (!isFinite(newR)) break;
+    if (Math.abs(newR - r) < 1e-9) return newR;
+    r = newR;
+    if (r < -0.999) r = -0.99;
+  }
+  // bisection fallback over [-0.99, 5]
+  let lo = -0.99, hi = 5.0;
+  let fLo = npv(lo, cashflows), fHi = npv(hi, cashflows);
+  if (fLo * fHi > 0) return null;
+  for (let i = 0; i < 200; i++) {
+    const mid = (lo + hi) / 2;
+    const fMid = npv(mid, cashflows);
+    if (Math.abs(fMid) < 1e-7) return mid;
+    if (fLo * fMid < 0) { hi = mid; fHi = fMid; }
+    else { lo = mid; fLo = fMid; }
+  }
+  return (lo + hi) / 2;
+}
+
+// ---- Master underwriting compute ----------------------------------------------
+function compute(a) {
+  // a is assumptions object — see DEFAULT_ASSUMPTIONS
+  const purchase = N(a.purchasePrice);
+  const closing  = purchase * (N(a.closingCostsPct) / 100);
+  const furnish  = N(a.furnishingCost);
+  const reno     = N(a.renovationCost);
+  const legal    = N(a.legalFees);
+  const totalProjectCost = purchase + closing + furnish + reno + legal;
+
+  // financing
+  const ltv      = clamp(N(a.ltvPct) / 100, 0, 0.95);
+  const loanAmt  = purchase * ltv;                  // sized on purchase price
+  const equityCash = totalProjectCost - loanAmt;     // total cash equity going in
+  const ratePct  = N(a.interestRatePct);
+  const termYrs  = Math.max(1, N(a.loanTermYears, 1));
+  const ioYrs    = Math.max(0, Math.min(N(a.ioPeriodYears), termYrs - 1));
+
+  // year 1 operations
+  const adr      = N(a.adr);
+  const occ0     = clamp(N(a.occupancyPct) / 100, 0, 1);
+  const nights   = clamp(N(a.nightsAvailable), 1, 365);
+  const revPar   = adr * occ0;
+  const occupiedNights0 = occ0 * nights;
+  const gross0   = adr * occupiedNights0 + N(a.otherIncome);
+
+  // platform / OTA fees & mgmt fee are % of gross revenue
+  const otaFee0  = gross0 * (N(a.otaFeePct) / 100);
+  const mgmt0    = gross0 * (N(a.mgmtFeePct) / 100);
+  const capexRes0 = gross0 * (N(a.capexReservePct) / 100);
+  const fixedOpex0 = N(a.staffCost) + N(a.utilities) + N(a.insurance) + N(a.propertyTax)
+                    + N(a.repairsMaintenance) + N(a.marketing) + N(a.miscOpex);
+  const opex0    = fixedOpex0 + otaFee0 + mgmt0 + capexRes0;
+  const noi0     = gross0 - opex0;
+  const opexRatio0 = safeDiv(opex0, gross0);
+
+  // financing year 1
+  const hold     = clamp(Math.round(N(a.holdYears, 5)), 1, 20);
+  const amort    = buildAmortization(loanAmt, ratePct, termYrs, ioYrs, hold);
+  const debtSvc0 = amort[0]?.debtService || 0;
+  const cf0      = noi0 - debtSvc0;
+  const capRate0 = safeDiv(noi0, purchase);
+  const grossYield0 = safeDiv(gross0, purchase);
+  const coc0     = safeDiv(cf0, equityCash);
+  const dscr0    = safeDiv(noi0, debtSvc0);
+
+  // break-even occupancy: (fixedOpex + debt service + insurance etc) / (adr*nights*(1-variable rate))
+  // variable cost rate against gross = ota% + mgmt% + capex%
+  const varRate  = (N(a.otaFeePct) + N(a.mgmtFeePct) + N(a.capexReservePct)) / 100;
+  const fixedBurden = fixedOpex0 + debtSvc0;
+  const beOcc    = safeDiv(fixedBurden, (adr * nights - N(a.otherIncome)) * (1 - varRate));
+
+  // projections
+  const adrGr    = N(a.adrGrowthPct) / 100;
+  const occGr    = N(a.occGrowthPct) / 100;
+  const inflGr   = N(a.opexInflationPct) / 100;
+
+  const projections = [];
+  let cumulCF = -equityCash; // we'll track to find payback below (operating-only)
+  let paybackYear = null;
+  let paybackIncludingExit = null;
+  for (let y = 1; y <= hold; y++) {
+    const occY = clamp(occ0 + occGr * (y - 1), 0, 0.98);
+    const adrY = adr * Math.pow(1 + adrGr, y - 1);
+    const grossY = adrY * occY * nights + N(a.otherIncome) * Math.pow(1 + inflGr, y - 1);
+    const otaY  = grossY * (N(a.otaFeePct) / 100);
+    const mgmtY = grossY * (N(a.mgmtFeePct) / 100);
+    const capexY= grossY * (N(a.capexReservePct) / 100);
+    const fixedY = fixedOpex0 * Math.pow(1 + inflGr, y - 1);
+    const opexY = fixedY + otaY + mgmtY + capexY;
+    const noiY  = grossY - opexY;
+    const ds    = amort[y - 1]?.debtService || 0;
+    const cfY   = noiY - ds;
+    cumulCF += cfY;
+    if (paybackYear == null && cumulCF >= 0) paybackYear = y;
+    projections.push({
+      year: y,
+      adr: adrY, occupancy: occY, gross: grossY, opex: opexY, noi: noiY,
+      debtService: ds, principal: amort[y - 1]?.principal || 0,
+      interest: amort[y - 1]?.interest || 0,
+      balance: amort[y - 1]?.balance || 0,
+      cashFlow: cfY,
+    });
+  }
+
+  // exit
+  const lastNoi   = projections[hold - 1].noi;
+  // grow forward 1 year as stabilized
+  const stabNoi   = lastNoi * (1 + adrGr) * 0.99; // tiny stabilization haircut
+  const exitMethod = a.exitMethod || "capRate";
+  let exitValue;
+  if (exitMethod === "appreciation") {
+    exitValue = purchase * Math.pow(1 + N(a.appreciationPct) / 100, hold);
+  } else {
+    const exitCap = Math.max(0.001, N(a.exitCapRatePct) / 100);
+    exitValue = safeDiv(stabNoi, exitCap, 0);
+  }
+  const sellingCosts = exitValue * (N(a.sellingCostsPct) / 100);
+  const loanBalanceAtExit = projections[hold - 1].balance;
+  const netSaleProceeds = exitValue - sellingCosts - loanBalanceAtExit;
+
+  // payback including exit proceeds (capital recovery year)
+  if (paybackYear == null) {
+    let cum = -equityCash;
+    for (let y = 0; y < hold; y++) {
+      cum += projections[y].cashFlow;
+      if (y === hold - 1) cum += netSaleProceeds;
+      if (cum >= 0) { paybackIncludingExit = y + 1; break; }
+    }
+  } else {
+    paybackIncludingExit = paybackYear;
+  }
+
+  // ---- IRR cash flows ----
+  // Levered IRR on total equity cash (closing equity + operating CF + net sale)
+  const leveredFlows = [-equityCash];
+  for (let i = 0; i < hold - 1; i++) leveredFlows.push(projections[i].cashFlow);
+  leveredFlows.push(projections[hold - 1].cashFlow + netSaleProceeds);
+  const leveredIRR = irr(leveredFlows, 0.12);
+
+  // Unlevered IRR (uses NOI and sale proceeds without debt)
+  const unleveredFlows = [-totalProjectCost];
+  for (let i = 0; i < hold - 1; i++) unleveredFlows.push(projections[i].noi);
+  unleveredFlows.push(projections[hold - 1].noi + (exitValue - sellingCosts));
+  const unleveredIRR = irr(unleveredFlows, 0.08);
+
+  // equity multiple
+  let totalDistr = 0;
+  for (let i = 0; i < hold - 1; i++) totalDistr += Math.max(0, projections[i].cashFlow);
+  totalDistr += Math.max(0, projections[hold - 1].cashFlow) + Math.max(0, netSaleProceeds);
+  const equityMultiple = safeDiv(totalDistr, equityCash);
+  const roiTotal = safeDiv(totalDistr - equityCash, equityCash);
+
+  // ---- Capital injection sub-analysis ----
+  const inj      = Math.max(0, N(a.injectionAmount));
+  const ownShare = clamp(N(a.ownershipPct) / 100, 0, 1);
+  // share of equity cash flows applies to injected capital owner
+  const injFlows = leveredFlows.map((cf, i) => (i === 0 ? -inj : cf * ownShare));
+  const injIRR   = irr(injFlows, 0.12);
+  let injDistr   = 0;
+  for (let i = 1; i < injFlows.length; i++) injDistr += Math.max(0, injFlows[i]);
+  const injEM    = safeDiv(injDistr, inj);
+  const injCoC0  = safeDiv(cf0 * ownShare, inj);
+
+  // ---- Property value estimate (income approach: NOI / cap rate avg of subject) ----
+  const impliedValue = safeDiv(noi0, capRate0 || 0.07);
+
+  return {
+    // costs
+    purchase, closing, furnish, reno, legal, totalProjectCost,
+    // financing
+    loanAmt, equityCash, ratePct, termYrs, ioYrs, amort,
+    // operations
+    adr, occ0, nights, revPar, occupiedNights0,
+    gross0, otaFee0, mgmt0, capexRes0, fixedOpex0, opex0,
+    noi0, opexRatio0, capRate0, grossYield0,
+    debtSvc0, cf0, coc0, dscr0, beOcc,
+    // projections
+    projections,
+    // exit
+    exitValue, sellingCosts, loanBalanceAtExit, netSaleProceeds, exitMethod,
+    // returns
+    leveredIRR, unleveredIRR, leveredFlows, unleveredFlows,
+    equityMultiple, roiTotal, totalDistr,
+    paybackYear, paybackIncludingExit,
+    // capital injection
+    inj, ownShare, injIRR, injEM, injCoC0, injFlows,
+    // misc
+    impliedValue,
+  };
+}
+
+// ---- Sensitivity (2-D matrices) -----------------------------------------------
+function sensitivity(a, rowKey, rowVals, colKey, colVals, outKey = "leveredIRR") {
+  // build a matrix of result[outKey] across overrides
+  const matrix = [];
+  for (const rv of rowVals) {
+    const row = [];
+    for (const cv of colVals) {
+      const a2 = { ...a, [rowKey]: rv, [colKey]: cv };
+      const r = compute(a2);
+      let val = r[outKey];
+      // also support nested 'coc0'/'capRate0'/'dscr0'
+      row.push(val);
+    }
+    matrix.push(row);
+  }
+  return matrix;
+}
+
+// ---- Scoring engine ------------------------------------------------------------
+function scoreInvestment(a, r, benchmarks) {
+  // benchmarks: array of {type, yield (in %), ...}
+  const depYields = benchmarks.filter(b => /Bank deposit|Money market/i.test(b.type)).map(b => N(b.yield) / 100);
+  const bondYields= benchmarks.filter(b => /Government bond|Treasury|Sukuk/i.test(b.type)).map(b => N(b.yield) / 100);
+  const reitYields= benchmarks.filter(b => /REIT/i.test(b.type)).map(b => N(b.yield) / 100);
+
+  const avg = arr => arr.length ? arr.reduce((s,x) => s+x, 0)/arr.length : 0;
+  const depAvg  = avg(depYields);
+  const bondAvg = avg(bondYields);
+  const reitAvg = avg(reitYields);
+
+  const factors = [];
+
+  // 1) IRR vs REIT (weight 22)
+  const irrV = r.leveredIRR;
+  if (irrV != null) {
+    const spread = irrV - reitAvg;
+    const pts = clamp(50 + spread * 400, 0, 100); // 0% spread = 50, +12.5% spread = 100
+    factors.push({ name: "Levered IRR vs REIT yield", weight: 22, pts, detail: `${pct(irrV)} vs ${pct(reitAvg)}` });
+  } else factors.push({ name: "Levered IRR vs REIT yield", weight: 22, pts: 30, detail: "IRR unsolvable" });
+
+  // 2) Cash-on-Cash vs Fixed Deposit (weight 18)
+  if (r.coc0 != null) {
+    const spread = r.coc0 - depAvg;
+    const pts = clamp(50 + spread * 600, 0, 100);
+    factors.push({ name: "Year-1 CoC vs Deposit avg", weight: 18, pts, detail: `${pct(r.coc0)} vs ${pct(depAvg)}` });
+  }
+
+  // 3) Cap rate vs Govt bond (weight 16)
+  if (r.capRate0 != null) {
+    const spread = r.capRate0 - bondAvg;
+    const pts = clamp(50 + spread * 600, 0, 100);
+    factors.push({ name: "Cap rate vs Govt bond", weight: 16, pts, detail: `${pct(r.capRate0)} vs ${pct(bondAvg)}` });
+  }
+
+  // 4) DSCR (weight 12)
+  if (r.dscr0 != null && isFinite(r.dscr0)) {
+    const pts = clamp((r.dscr0 - 1.0) * 80, 0, 100); // 1.25 -> 20, 1.5 -> 40, 2.0 -> 80
+    factors.push({ name: "DSCR strength", weight: 12, pts, detail: `${fmtX(r.dscr0)}` });
+  }
+
+  // 5) Occupancy realism penalty (weight 7) – very high occ becomes a penalty
+  const occ = r.occ0;
+  let occPts = 70;
+  if (occ <= 0.45) occPts = 30;
+  else if (occ <= 0.6) occPts = 60;
+  else if (occ <= 0.75) occPts = 80;
+  else if (occ <= 0.85) occPts = 65;
+  else occPts = 35;
+  factors.push({ name: "Occupancy realism", weight: 7, pts: occPts, detail: pct(occ) });
+
+  // 6) Opex ratio (weight 8) - lower better
+  if (r.opexRatio0 != null) {
+    let pts;
+    if (r.opexRatio0 < 0.35) pts = 90;
+    else if (r.opexRatio0 < 0.5) pts = 70;
+    else if (r.opexRatio0 < 0.65) pts = 50;
+    else pts = 25;
+    factors.push({ name: "Opex efficiency", weight: 8, pts, detail: pct(r.opexRatio0) });
+  }
+
+  // 7) Equity multiple (weight 10)
+  if (r.equityMultiple != null && isFinite(r.equityMultiple)) {
+    const pts = clamp((r.equityMultiple - 1) * 35, 0, 100);
+    factors.push({ name: "Equity multiple", weight: 10, pts, detail: fmtX(r.equityMultiple) });
+  }
+
+  // 8) Valuation vs comps (weight 7) -- handled in app via comps
+  // placeholder; app fills it post-hoc with comp data
+  factors.push({ name: "Valuation vs comps", weight: 7, pts: 60, detail: "set by comps" });
+
+  let weightedSum = 0, weights = 0;
+  factors.forEach(f => { weightedSum += f.pts * f.weight; weights += f.weight; });
+  const score = Math.round(weightedSum / weights);
+
+  // recommendation
+  let rec = "Watchlist";
+  if (score >= 75) rec = "Attractive";
+  else if (score >= 55) rec = "Watchlist";
+  else if (score >= 40) rec = "Caution";
+  else rec = "Uninvestable";
+
+  // risk rating
+  let risk = "Moderate";
+  if ((r.dscr0 ?? 0) < 1.1 || (r.coc0 ?? -1) < 0) risk = "Speculative";
+  else if ((r.dscr0 ?? 0) < 1.25 || occ > 0.85) risk = "High";
+  else if ((r.dscr0 ?? 0) >= 1.6 && (r.leveredIRR ?? 0) > 0.12) risk = "Low";
+  else risk = "Moderate";
+
+  return { score, factors, rec, risk, depAvg, bondAvg, reitAvg };
+}
+
+// ---- Data confidence -----------------------------------------------------------
+function dataConfidence(a, comps, benchmarks) {
+  // crude: % of fields filled + how many comps + how many benchmarks
+  const importantFields = [
+    "purchasePrice","adr","occupancyPct","ltvPct","interestRatePct",
+    "loanTermYears","mgmtFeePct","staffCost","insurance","propertyTax",
+    "holdYears","exitCapRatePct","injectionAmount"
+  ];
+  let filled = 0;
+  importantFields.forEach(k => { if (N(a[k], 0) > 0 || a[k] === 0) filled += 1; });
+  const fieldScore = (filled / importantFields.length) * 60;
+
+  const compScore = clamp(comps.length * 5, 0, 25); // 5 comps -> 25
+  const benchScore = clamp(benchmarks.length * 3, 0, 15);
+  return Math.round(fieldScore + compScore + benchScore);
+}
+
+/* =========================================================
+   Villa ROI Calculator — App orchestration, render, events
+   ========================================================= */
+
+const state = {
+  a: structuredClone(DEFAULT_ASSUMPTIONS),
+  comps: structuredClone(DEFAULT_COMPS),
+  benchmarks: structuredClone(MARKETS[DEFAULT_ASSUMPTIONS.market].benchmarks),
+  charts: {},
+  theme: "light",
+};
+
+// short alias for currency symbol
+const ccySym = () => (CURRENCIES[state.a.currency] || CURRENCIES.USD).sym;
+const $ = (id) => document.getElementById(id);
+
+// ---- Init populate selects ----------------------------------------------------
+function initSelects() {
+  const m = $("market");
+  Object.entries(MARKETS).forEach(([k, v]) => {
+    const opt = document.createElement("option");
+    opt.value = k; opt.textContent = `${v.name} (${v.currency})`;
+    m.appendChild(opt);
+  });
+  m.value = state.a.market;
+
+  const c = $("currency");
+  Object.keys(CURRENCIES).forEach(k => {
+    const opt = document.createElement("option");
+    opt.value = k; opt.textContent = k;
+    c.appendChild(opt);
+  });
+  c.value = state.a.currency;
+}
+
+// ---- Bind inputs to state -----------------------------------------------------
+const INPUT_KEYS = [
+  "villaName","location","bedrooms","landSqm","buildSqm",
+  "purchasePrice","closingCostsPct","furnishingCost","renovationCost","legalFees",
+  "ltvPct","interestRatePct","loanTermYears","ioPeriodYears",
+  "adr","occupancyPct","nightsAvailable","otherIncome","mgmtFeePct","otaFeePct",
+  "staffCost","utilities","insurance","propertyTax","repairsMaintenance",
+  "capexReservePct","marketing","miscOpex",
+  "adrGrowthPct","occGrowthPct","opexInflationPct",
+  "holdYears","exitCapRatePct","appreciationPct","sellingCostsPct","exitMethod",
+  "injectionAmount","injectionType","ownershipPct","prefReturnPct"
+];
+
+function loadInputs() {
+  INPUT_KEYS.forEach(k => {
+    const el = $(k);
+    if (!el) return;
+    el.value = state.a[k] ?? "";
+  });
+  // currency symbols on prefixes
+  document.querySelectorAll('[id^="ccySym"]').forEach(el => el.textContent = ccySym());
+}
+function bindInputs() {
+  INPUT_KEYS.forEach(k => {
+    const el = $(k);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      let v = el.value;
+      if (el.type === "number") v = v === "" ? 0 : parseFloat(v);
+      state.a[k] = v;
+      renderAll();
+    });
+    el.addEventListener("change", () => {
+      let v = el.value;
+      if (el.type === "number") v = v === "" ? 0 : parseFloat(v);
+      state.a[k] = v;
+      renderAll();
+    });
+  });
+
+  $("market").addEventListener("change", e => {
+    state.a.market = e.target.value;
+    // reset benchmarks to that market's defaults
+    state.benchmarks = structuredClone(MARKETS[state.a.market].benchmarks);
+    renderAll();
+  });
+  $("currency").addEventListener("change", e => {
+    state.a.currency = e.target.value;
+    document.querySelectorAll('[id^="ccySym"]').forEach(el => el.textContent = ccySym());
+    renderAll();
+  });
+
+  $("themeToggle").addEventListener("click", () => {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", state.theme);
+    // re-render charts so colors update
+    renderCharts();
+  });
+
+  $("addBenchmark").addEventListener("click", () => {
+    state.benchmarks.push({
+      name: "Custom benchmark", type: "Bank deposit", tenor: "12M",
+      yield: 3.0, liquidity: "Low", risk: "Very Low", source: "Manual"
+    });
+    renderBenchmarks();
+    renderScore();
+    renderCharts();
+  });
+  $("resetBenchmarks").addEventListener("click", () => {
+    state.benchmarks = structuredClone(MARKETS[state.a.market].benchmarks);
+    renderAll();
+  });
+
+  $("addBlankComp").addEventListener("click", () => {
+    state.comps.push({
+      name: "New comp", location: state.a.location, bedrooms: state.a.bedrooms,
+      landSqm: 0, buildSqm: 0, askPrice: 0, currency: state.a.currency,
+      adr: 0, occPct: 0, notes: "", source: "Manual", confidence: 0.5
+    });
+    renderComps(); renderCharts(); renderScore();
+  });
+  $("addCompFromUrl").addEventListener("click", () => {
+    const url = $("compUrl").value.trim();
+    if (!url) return;
+    state.comps.push({
+      name: "Listing — paste details", location: state.a.location, bedrooms: 0,
+      landSqm: 0, buildSqm: 0, askPrice: 0, currency: state.a.currency,
+      adr: 0, occPct: 0, notes: "", source: url, confidence: 0.4
+    });
+    $("compUrl").value = "";
+    renderComps(); renderCharts(); renderScore();
+  });
+
+  $("exportJson").addEventListener("click", exportJson);
+  $("exportSummary").addEventListener("click", exportUWSummary);
+  $("exportComps").addEventListener("click", exportComps);
+  $("exportBench").addEventListener("click", exportBench);
+  $("copyMemo").addEventListener("click", copyMemo);
+  $("printPdf").addEventListener("click", () => window.print());
+}
+
+// =========================================================
+//  RENDER: KPIs
+// =========================================================
+function renderKPIs(r, score) {
+  const ccy = state.a.currency;
+  const depAvg = score.depAvg, bondAvg = score.bondAvg, reitAvg = score.reitAvg;
+  const cocSpread = r.coc0 != null ? (r.coc0 - depAvg) : null;
+  const capSpread = r.capRate0 != null ? (r.capRate0 - bondAvg) : null;
+
+  const kpis = [
+    { label: "Total project cost", val: fmtMoney(r.totalProjectCost, ccy, true), sub: `Equity in: ${fmtMoney(r.equityCash, ccy, true)}`, klass: "" },
+    { label: "Year-1 NOI",      val: fmtMoney(r.noi0, ccy, true), sub: `Gross: ${fmtMoney(r.gross0, ccy, true)}`, klass: r.noi0 >= 0 ? "pos" : "neg" },
+    { label: "Cap rate",        val: pct(r.capRate0), sub: capSpread != null ? `${(capSpread>=0?"+":"") + bps(capSpread)} vs bonds` : "", klass: (capSpread ?? 0) >= 0 ? "pos" : "warn" },
+    { label: "Cash-on-Cash Y1", val: pct(r.coc0), sub: cocSpread != null ? `${(cocSpread>=0?"+":"") + bps(cocSpread)} vs deposits` : "", klass: (cocSpread ?? 0) >= 0 ? "pos" : "warn" },
+    { label: "DSCR Y1",         val: fmtX(r.dscr0), sub: r.dscr0 != null && r.dscr0 < 1.2 ? "Tight coverage" : "Adequate coverage", klass: r.dscr0 >= 1.25 ? "pos" : "warn" },
+    { label: "Levered IRR",     val: pct(r.leveredIRR), sub: r.unleveredIRR != null ? `Unlevered: ${pct(r.unleveredIRR)}` : "Unlevered: —", klass: (r.leveredIRR ?? 0) >= 0.1 ? "pos" : "warn" },
+    { label: "Equity multiple", val: fmtX(r.equityMultiple), sub: `Hold: ${state.a.holdYears}y · Payback: ${r.paybackIncludingExit ?? r.paybackYear ?? "—"}y`, klass: r.equityMultiple >= 1.5 ? "pos" : "" },
+    { label: "Score / Risk",    val: score.score + "/100", sub: `${score.rec} · ${score.risk}`, klass: score.score >= 75 ? "pos" : score.score >= 55 ? "warn" : "neg" },
+  ];
+  const wrap = $("kpiStrip");
+  wrap.innerHTML = kpis.map(k => `
+    <div class="kpi ${k.klass}">
+      <span class="accentbar"></span>
+      <div class="label">${k.label}</div>
+      <div class="val">${k.val}</div>
+      <div class="sub">${k.sub}</div>
+    </div>`).join("");
+}
+
+// =========================================================
+//  RENDER: Underwriting summary
+// =========================================================
+function renderUW(r) {
+  const ccy = state.a.currency;
+  const rows = [
+    ["Acquisition", null, "section"],
+    ["Purchase price", fmtMoney(r.purchase, ccy), "user"],
+    ["Closing costs", fmtMoney(r.closing, ccy), "derived"],
+    ["Renovation", fmtMoney(r.reno, ccy), "user"],
+    ["Furnishing / pre-open", fmtMoney(r.furnish, ccy), "user"],
+    ["Legal / tax fees", fmtMoney(r.legal, ccy), "user"],
+    ["Total project cost", fmtMoney(r.totalProjectCost, ccy), "derived", "tot"],
+    ["Financing", null, "section"],
+    ["Loan amount (LTV × Purchase)", fmtMoney(r.loanAmt, ccy), "derived"],
+    ["Equity cash invested", fmtMoney(r.equityCash, ccy), "derived"],
+    ["Year-1 debt service", fmtMoney(r.debtSvc0, ccy), "derived"],
+    ["Operations (Yr 1)", null, "section"],
+    ["Occupied nights", r.occupiedNights0.toFixed(0) + " / " + r.nights + " nights", "derived"],
+    ["RevPAR", fmtMoney(r.revPar, ccy), "derived"],
+    ["Gross revenue", fmtMoney(r.gross0, ccy), "derived"],
+    ["Mgmt fee", fmtMoney(r.mgmt0, ccy), "derived"],
+    ["OTA / platform", fmtMoney(r.otaFee0, ccy), "derived"],
+    ["CapEx reserve", fmtMoney(r.capexRes0, ccy), "derived"],
+    ["Fixed opex (staff, utilities, etc.)", fmtMoney(r.fixedOpex0, ccy), "derived"],
+    ["Total opex", fmtMoney(r.opex0, ccy), "derived"],
+    ["NOI", fmtMoney(r.noi0, ccy), "derived", "tot"],
+    ["Pre-tax cash flow", fmtMoney(r.cf0, ccy), "derived"],
+    ["Returns", null, "section"],
+    ["Cap rate", pct(r.capRate0), "derived"],
+    ["Cash-on-Cash", pct(r.coc0), "derived"],
+    ["Gross yield", pct(r.grossYield0), "derived"],
+    ["Opex ratio", pct(r.opexRatio0), "derived"],
+    ["DSCR", fmtX(r.dscr0), "derived"],
+    ["Break-even occupancy", pct(r.beOcc), "derived"],
+    ["Payback period (operating only)", r.paybackYear ? r.paybackYear + " yrs" : "> hold", "derived"],
+    ["Payback period (incl. exit)", r.paybackIncludingExit ? r.paybackIncludingExit + " yrs" : "> hold", "derived"],
+    ["ROI (total)", pct(r.roiTotal), "derived"],
+    ["Equity multiple", fmtX(r.equityMultiple), "derived"],
+    ["Levered IRR", pct(r.leveredIRR), "derived"],
+    ["Unlevered IRR", pct(r.unleveredIRR), "derived"],
+    ["Exit", null, "section"],
+    [`Exit value (${r.exitMethod === "appreciation" ? "appreciation" : "cap rate"})`, fmtMoney(r.exitValue, ccy), "scenario"],
+    ["Selling costs", fmtMoney(-r.sellingCosts, ccy), "derived"],
+    ["Loan balance at exit", fmtMoney(-r.loanBalanceAtExit, ccy), "derived"],
+    ["Net sale proceeds", fmtMoney(r.netSaleProceeds, ccy), "derived", "tot"],
+  ];
+  const html = `
+    <table class="tbl" style="font-size:12px;">
+      <tbody>
+        ${rows.map(([k,v,tag,cls]) => {
+          if (tag === "section") return `<tr><td colspan="3" style="background:var(--bg-sunk);color:var(--text-muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;padding:6px 10px;">${k}</td></tr>`;
+          const tagHtml = `<span class="tag ${tag}">${({user:"User",derived:"Derived",scenario:"Scenario",market:"Market"})[tag]||tag}</span>`;
+          return `<tr class="${cls==='tot'?'totals':''}"><td>${k}</td><td class="num">${v}</td><td class="right">${tagHtml}</td></tr>`;
+        }).join("")}
+      </tbody>
+    </table>`;
+  $("uwSummary").innerHTML = html;
+  $("uwSubtitle").textContent = `${state.a.villaName} · ${state.a.location} · ${state.a.bedrooms}BR · ${ccy}`;
+}
+
+// =========================================================
+//  RENDER: Capital injection panel
+// =========================================================
+function renderInjection(r, score) {
+  const ccy = state.a.currency;
+  const benchYields = state.benchmarks.map(b => N(b.yield) / 100);
+  const minBench = benchYields.length ? Math.min(...benchYields) : 0;
+  const maxBench = benchYields.length ? Math.max(...benchYields) : 0;
+  const reqPremium = 0.04; // illustrative required risk premium over best risk-free
+  const requiredReturn = Math.max(...benchYields, 0) + reqPremium;
+  const irrSpreadVsTop = r.injIRR != null ? r.injIRR - Math.max(...benchYields, 0) : null;
+  const cocSpreadVsDep = r.injCoC0 != null ? r.injCoC0 - score.depAvg : null;
+
+  const rows = [
+    ["Injection amount", fmtMoney(r.inj, ccy)],
+    ["Type", state.a.injectionType],
+    ["Ownership share", (r.ownShare * 100).toFixed(1) + "%"],
+    ["Pro-rata equity in deal", fmtMoney(r.equityCash * r.ownShare, ccy)],
+    ["Year-1 cash to injected capital", fmtMoney(r.cf0 * r.ownShare, ccy)],
+    ["Levered cash yield Y1 (on injection)", pct(r.injCoC0)],
+    ["Equity multiple on injection", fmtX(r.injEM)],
+    ["IRR on injected capital", pct(r.injIRR)],
+    ["Spread vs top benchmark yield", irrSpreadVsTop != null ? bps(irrSpreadVsTop) : "—"],
+    ["CoC spread vs deposits", cocSpreadVsDep != null ? bps(cocSpreadVsDep) : "—"],
+    ["Illiquidity premium (required, illustrative)", pct(reqPremium)],
+    ["Required total return (top bench + premium)", pct(requiredReturn)],
+    ["Verdict — IRR exceeds required return?", r.injIRR != null && r.injIRR >= requiredReturn
+      ? `<span class="pos">Yes (+${bps(r.injIRR - requiredReturn)})</span>`
+      : `<span class="neg">No (${r.injIRR != null ? bps(r.injIRR - requiredReturn) : "n/a"})</span>`],
+  ];
+  $("injPanel").innerHTML = `
+    <table class="tbl" style="font-size:12.5px;">
+      <tbody>
+        ${rows.map(([k,v]) => `<tr><td>${k}</td><td class="num right">${v}</td></tr>`).join("")}
+      </tbody>
+    </table>`;
+  $("injMeta").innerHTML = `Bench range: ${pct(minBench)} – ${pct(maxBench)} · injected capital: <span class="mono">${fmtMoney(r.inj, ccy)}</span>`;
+}
+
+// =========================================================
+//  RENDER: Benchmarks
+// =========================================================
+function renderBenchmarks() {
+  const tbody = $("benchTable").querySelector("tbody");
+  const r = compute(state.a);
+  const cap = r.capRate0 ?? 0;
+  const coc = r.coc0 ?? 0;
+  const irrV = r.leveredIRR ?? 0;
+  tbody.innerHTML = state.benchmarks.map((b, i) => {
+    const y = N(b.yield) / 100;
+    const dCap = (cap - y);
+    const dCoc = (coc - y);
+    const dIrr = (irrV - y);
+    return `
+      <tr data-i="${i}">
+        <td><input class="txt" data-k="name" value="${escapeAttr(b.name)}" /></td>
+        <td>
+          <select data-k="type">
+            ${["Bank deposit","Treasury bill","Government bond","Money market fund","Listed REIT","Sukuk","Other"]
+              .map(t => `<option ${b.type===t?"selected":""}>${t}</option>`).join("")}
+          </select>
+        </td>
+        <td><input data-k="tenor" class="txt" value="${escapeAttr(b.tenor ?? "")}" style="text-align:left;max-width:70px;" /></td>
+        <td><input data-k="yield" type="number" step="0.05" value="${b.yield}" style="max-width:80px;" /></td>
+        <td class="num ${dCap>=0?'pos':'neg'}">${bps(dCap)}</td>
+        <td class="num ${dCoc>=0?'pos':'neg'}">${bps(dCoc)}</td>
+        <td class="num ${dIrr>=0?'pos':'neg'}">${bps(dIrr)}</td>
+        <td><input data-k="liquidity" class="txt" value="${escapeAttr(b.liquidity ?? "")}" style="text-align:left;" /></td>
+        <td><input data-k="risk" class="txt" value="${escapeAttr(b.risk ?? "")}" style="text-align:left;" /></td>
+        <td><input data-k="source" class="txt" value="${escapeAttr(b.source ?? "")}" style="text-align:left;" /></td>
+        <td><span class="tag yield">Yield</span></td>
+        <td class="no-print"><button class="btn sm ghost" data-rm="${i}" title="Remove">✕</button></td>
+      </tr>`;
+  }).join("");
+
+  // bind edits
+  tbody.querySelectorAll("input, select").forEach(el => {
+    el.addEventListener("input", e => {
+      const tr = el.closest("tr");
+      const i = +tr.dataset.i;
+      const k = el.dataset.k;
+      let v = el.value;
+      if (el.type === "number") v = parseFloat(v) || 0;
+      state.benchmarks[i][k] = v;
+      // for yield changes, re-render spreads
+      if (k === "yield") {
+        renderBenchmarks();
+        renderScore();
+        renderCharts();
+        renderKPIs(compute(state.a), scoreInvestment(state.a, compute(state.a), state.benchmarks));
+        renderMemo();
+      }
+    });
+  });
+  tbody.querySelectorAll("[data-rm]").forEach(b => {
+    b.addEventListener("click", () => {
+      state.benchmarks.splice(+b.dataset.rm, 1);
+      renderBenchmarks();
+      renderScore();
+      renderCharts();
+      renderKPIs(compute(state.a), scoreInvestment(state.a, compute(state.a), state.benchmarks));
+      renderMemo();
+    });
+  });
+
+  $("marketLabel").textContent = `${MARKETS[state.a.market].name} comparator set`;
+  $("marketNotes").textContent = MARKETS[state.a.market].notes;
+}
+
+function escapeAttr(s) { return String(s ?? "").replace(/"/g, "&quot;"); }
+
+// =========================================================
+//  RENDER: Comps
+// =========================================================
+function renderComps() {
+  const tbody = $("compTable").querySelector("tbody");
+  tbody.innerHTML = state.comps.map((c, i) => {
+    const totalSqm = N(c.buildSqm) || N(c.landSqm) || 0;
+    const perSqm = safeDiv(N(c.askPrice), totalSqm);
+    const grossImplied = N(c.adr) * (N(c.occPct) / 100) * 340;
+    const grossPerSqm = safeDiv(grossImplied, totalSqm);
+    return `
+    <tr data-i="${i}">
+      <td><input class="txt" data-k="name" value="${escapeAttr(c.name)}" /></td>
+      <td><input class="txt" data-k="location" value="${escapeAttr(c.location)}" /></td>
+      <td><input data-k="bedrooms" type="number" value="${c.bedrooms}" style="max-width:60px;" /></td>
+      <td><input data-k="landSqm" type="number" value="${c.landSqm}" style="max-width:80px;" /></td>
+      <td><input data-k="buildSqm" type="number" value="${c.buildSqm}" style="max-width:80px;" /></td>
+      <td><input data-k="askPrice" type="number" value="${c.askPrice}" style="max-width:120px;" /></td>
+      <td>
+        <select data-k="currency">
+          ${Object.keys(CURRENCIES).map(k => `<option ${c.currency===k?"selected":""}>${k}</option>`).join("")}
+        </select>
+      </td>
+      <td class="num">${perSqm ? fmtMoney(perSqm, c.currency) : "—"}</td>
+      <td><input data-k="adr" type="number" value="${c.adr}" style="max-width:80px;" /></td>
+      <td><input data-k="occPct" type="number" value="${c.occPct}" style="max-width:70px;" /></td>
+      <td class="num">${grossPerSqm ? fmtMoney(grossPerSqm, c.currency) : "—"}</td>
+      <td><input class="txt" data-k="source" value="${escapeAttr(c.source)}" /></td>
+      <td><input data-k="confidence" type="number" step="0.05" min="0" max="1" value="${c.confidence}" style="max-width:60px;" /></td>
+      <td><span class="tag web">Web</span></td>
+      <td class="no-print"><button class="btn sm ghost" data-rm="${i}">✕</button></td>
+    </tr>`;
+  }).join("");
+  tbody.querySelectorAll("input, select").forEach(el => {
+    el.addEventListener("input", e => {
+      const tr = el.closest("tr");
+      const i = +tr.dataset.i;
+      const k = el.dataset.k;
+      let v = el.value;
+      if (el.type === "number") v = parseFloat(v) || 0;
+      state.comps[i][k] = v;
+      if (["askPrice","buildSqm","landSqm","adr","occPct","currency","bedrooms","name","source","confidence"].includes(k)) {
+        renderComps();
+      }
+      renderCharts();
+      renderScore();
+      renderMemo();
+    });
+  });
+  tbody.querySelectorAll("[data-rm]").forEach(b => {
+    b.addEventListener("click", () => {
+      state.comps.splice(+b.dataset.rm, 1);
+      renderComps(); renderCharts(); renderScore(); renderMemo();
+    });
+  });
+  const avgAsk = avg(state.comps.map(c => N(c.askPrice) || null).filter(x => x));
+  const avgAdr = avg(state.comps.map(c => N(c.adr) || null).filter(x => x));
+  $("compMeta").innerHTML = `n=${state.comps.length} · avg ask: <span class="mono">${avgAsk ? fmtMoney(avgAsk, "USD", true) : "—"}</span> · avg ADR: <span class="mono">${avgAdr ? fmtMoney(avgAdr, "USD") : "—"}</span>`;
+}
+
+function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
+
+// =========================================================
+//  RENDER: Projections table
+// =========================================================
+function renderProjections(r) {
+  const ccy = state.a.currency;
+  const yrs = r.projections;
+  const head = `
+    <tr>
+      <th>Year</th>
+      <th>ADR</th><th>Occ</th><th>Gross rev</th><th>Opex</th><th>NOI</th>
+      <th>Interest</th><th>Principal</th><th>Debt svc</th>
+      <th>Pre-tax CF</th><th>Loan bal</th>
+    </tr>`;
+  const body = yrs.map(p => `
+    <tr>
+      <td>Year ${p.year}</td>
+      <td class="num">${fmtMoney(p.adr, ccy)}</td>
+      <td class="num">${pct(p.occupancy)}</td>
+      <td class="num">${fmtMoney(p.gross, ccy)}</td>
+      <td class="num">${fmtMoney(-p.opex, ccy)}</td>
+      <td class="num ${p.noi>=0?'pos':'neg'}">${fmtMoney(p.noi, ccy)}</td>
+      <td class="num">${fmtMoney(-p.interest, ccy)}</td>
+      <td class="num">${fmtMoney(-p.principal, ccy)}</td>
+      <td class="num">${fmtMoney(-p.debtService, ccy)}</td>
+      <td class="num ${p.cashFlow>=0?'pos':'neg'}">${fmtMoney(p.cashFlow, ccy)}</td>
+      <td class="num">${fmtMoney(p.balance, ccy)}</td>
+    </tr>`).join("");
+  // exit summary row
+  const exitRow = `
+    <tr class="totals">
+      <td>Exit (Yr ${yrs.length})</td>
+      <td colspan="4" class="muted">${state.a.exitMethod === 'appreciation' ? 'Appreciation method' : 'Terminal cap rate method'}</td>
+      <td class="num">Exit value: ${fmtMoney(r.exitValue, ccy)}</td>
+      <td colspan="2" class="num">Selling: ${fmtMoney(-r.sellingCosts, ccy)}</td>
+      <td class="num">Loan payoff: ${fmtMoney(-r.loanBalanceAtExit, ccy)}</td>
+      <td class="num pos">Net: ${fmtMoney(r.netSaleProceeds, ccy)}</td>
+      <td></td>
+    </tr>`;
+  $("projTable").querySelector("thead").innerHTML = head;
+  $("projTable").querySelector("tbody").innerHTML = body + exitRow;
+}
+
+// =========================================================
+//  RENDER: Sensitivity heatmaps
+// =========================================================
+function renderHeat(elId, rowKey, rowLabels, rowVals, colKey, colLabels, colVals, fmt = pct1) {
+  const mat = sensitivity(state.a, rowKey, rowVals, colKey, colVals, "leveredIRR");
+  let allVals = [];
+  mat.forEach(r => r.forEach(v => { if (v != null && isFinite(v)) allVals.push(v); }));
+  const min = Math.min(...allVals), max = Math.max(...allVals);
+  const norm = v => (max === min ? 0.5 : (v - min) / (max - min));
+  const cells = [];
+  // build grid
+  const cols = colVals.length;
+  const grid = `${rowVals.length + 1}, 1fr`;
+  let html = `<div class="heat" style="grid-template-columns: 110px repeat(${cols}, 1fr);">`;
+  html += `<div class="hcell corner"></div>`;
+  colLabels.forEach(c => html += `<div class="hcell head">${c}</div>`);
+  for (let i = 0; i < rowVals.length; i++) {
+    html += `<div class="hcell head" style="text-align:left;">${rowLabels[i]}</div>`;
+    for (let j = 0; j < colVals.length; j++) {
+      const v = mat[i][j];
+      const t = v == null || !isFinite(v) ? 0.5 : norm(v);
+      // gold gradient
+      const bg = `rgba(184,137,58,${0.10 + t * 0.55})`;
+      html += `<div class="hcell" style="background:${bg};">${v == null ? "—" : fmt(v)}</div>`;
+    }
+  }
+  html += `</div>`;
+  $(elId).innerHTML = html;
+}
+
+// =========================================================
+//  RENDER: Charts
+// =========================================================
+function chartColors() {
+  const style = getComputedStyle(document.documentElement);
+  return {
+    text: style.getPropertyValue("--text").trim() || "#0f1722",
+    muted: style.getPropertyValue("--text-muted").trim() || "#5b6573",
+    grid: style.getPropertyValue("--grid-line").trim() || "rgba(0,0,0,0.06)",
+    accent: style.getPropertyValue("--accent").trim() || "#b8893a",
+    accent2: style.getPropertyValue("--accent-2").trim() || "#1f2a44",
+    pos: style.getPropertyValue("--positive").trim() || "#1a7f5a",
+    neg: style.getPropertyValue("--negative").trim() || "#b1392b",
+    warn: style.getPropertyValue("--warn").trim() || "#b87f1f",
+    info: style.getPropertyValue("--info").trim() || "#2c5a8a",
+  };
+}
+
+function destroyChart(name) {
+  if (state.charts[name]) {
+    try { state.charts[name].destroy(); } catch(e) {}
+    state.charts[name] = null;
+  }
+}
+
+function renderCharts() {
+  const r = compute(state.a);
+  const colors = chartColors();
+
+  // -------- Chart 1: Villa metrics vs benchmark yields ----------
+  destroyChart("yc");
+  const yLabels = state.benchmarks.map(b => b.name);
+  const yVals = state.benchmarks.map(b => N(b.yield));
+  const subjectMetrics = ["Cap rate","Cash-on-Cash","Levered IRR","Unlevered IRR"];
+  const subjectVals = [r.capRate0, r.coc0, r.leveredIRR, r.unleveredIRR].map(v => v != null ? v*100 : null);
+
+  state.charts.yc = new Chart($("chartYieldCompare"), {
+    type: "bar",
+    data: {
+      labels: [...subjectMetrics, ...yLabels],
+      datasets: [{
+        data: [...subjectVals, ...yVals],
+        backgroundColor: ctx => ctx.dataIndex < subjectMetrics.length ? colors.accent : colors.info,
+        borderRadius: 3,
+      }]
+    },
+    options: chartOpts(colors, "Yield / Return %", true)
+  });
+
+  // -------- Chart 2: IRR spread over each benchmark ----------
+  destroyChart("sp");
+  const irrPct = (r.leveredIRR ?? 0) * 100;
+  const spreads = state.benchmarks.map(b => irrPct - N(b.yield));
+  state.charts.sp = new Chart($("chartIRRSpread"), {
+    type: "bar",
+    data: {
+      labels: state.benchmarks.map(b => b.name),
+      datasets: [{
+        data: spreads,
+        backgroundColor: ctx => spreads[ctx.dataIndex] >= 0 ? colors.pos : colors.neg,
+        borderRadius: 3,
+      }]
+    },
+    options: { ...chartOpts(colors, "Spread (pp)"), indexAxis: "y" }
+  });
+
+  // -------- Chart 3: Cashflow & cumulative equity ----------
+  destroyChart("cf");
+  const years = r.projections.map(p => "Yr " + p.year);
+  const annCF = r.projections.map(p => p.cashFlow);
+  // cumulative including initial equity
+  let cum = -r.equityCash;
+  const cumArr = r.projections.map((p, i) => {
+    cum += p.cashFlow;
+    if (i === r.projections.length - 1) cum += r.netSaleProceeds;
+    return cum;
+  });
+  state.charts.cf = new Chart($("chartCashflow"), {
+    type: "bar",
+    data: {
+      labels: years,
+      datasets: [
+        { type: "bar", label: "Annual CF", data: annCF, backgroundColor: colors.accent, borderRadius: 3, yAxisID: "y" },
+        { type: "line", label: "Cumulative equity", data: cumArr, borderColor: colors.info, backgroundColor: colors.info, tension: 0.3, yAxisID: "y2", pointRadius: 3, borderWidth: 2 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: colors.muted, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ": " + fmtMoney(ctx.raw, state.a.currency, true) } }
+      },
+      scales: {
+        x: { ticks: { color: colors.muted, font: { size: 10 } }, grid: { color: colors.grid } },
+        y: { ticks: { color: colors.muted, font: { size: 10 }, callback: v => fmtMoney(v, state.a.currency, true) }, grid: { color: colors.grid } },
+        y2: { position: "right", ticks: { color: colors.muted, font: { size: 10 }, callback: v => fmtMoney(v, state.a.currency, true) }, grid: { display: false } }
+      }
+    }
+  });
+
+  // -------- Chart 4: Exit value bridge ----------
+  destroyChart("ex");
+  const exitVal = r.exitValue;
+  const sell = -r.sellingCosts;
+  const loan = -r.loanBalanceAtExit;
+  const net = r.netSaleProceeds;
+  state.charts.ex = new Chart($("chartExit"), {
+    type: "bar",
+    data: {
+      labels: ["Gross exit value", "− Selling costs", "− Loan payoff", "Net equity proceeds"],
+      datasets: [{
+        data: [exitVal, sell, loan, net],
+        backgroundColor: [colors.info, colors.warn, colors.warn, colors.pos],
+        borderRadius: 3,
+      }]
+    },
+    options: chartOpts(colors, "Amount", false, true)
+  });
+}
+
+function chartOpts(colors, yLabel, percent = false, money = false) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const v = ctx.raw;
+            if (money) return fmtMoney(v, state.a.currency, true);
+            if (percent) return fmtNum(v, 2) + "%";
+            return fmtNum(v, 2);
+          }
+        }
+      }
+    },
+    scales: {
+      x: { ticks: { color: colors.muted, font: { size: 10 }, maxRotation: 35, minRotation: 0 }, grid: { color: colors.grid } },
+      y: {
+        ticks: {
+          color: colors.muted, font: { size: 10 },
+          callback: v => money ? fmtMoney(v, state.a.currency, true) : (percent ? fmtNum(v, 1) + "%" : fmtNum(v, 1))
+        },
+        grid: { color: colors.grid }
+      }
+    }
+  };
+}
+
+// =========================================================
+//  RENDER: Score + memo
+// =========================================================
+function renderScore() {
+  const r = compute(state.a);
+  const score = scoreInvestment(state.a, r, state.benchmarks);
+
+  // adjust factor 8 (valuation vs comps)
+  const subjectPerSqm = safeDiv(N(state.a.purchasePrice), N(state.a.buildSqm));
+  const compsPerSqm = state.comps
+    .map(c => safeDiv(N(c.askPrice), N(c.buildSqm)))
+    .filter(x => x && isFinite(x));
+  const compAvgPerSqm = compsPerSqm.length ? compsPerSqm.reduce((a,b)=>a+b,0)/compsPerSqm.length : null;
+  let valFactor = score.factors.find(f => f.name === "Valuation vs comps");
+  if (valFactor) {
+    if (compAvgPerSqm && subjectPerSqm) {
+      const disc = (compAvgPerSqm - subjectPerSqm) / compAvgPerSqm; // positive => subject cheaper
+      valFactor.pts = clamp(50 + disc * 200, 0, 100);
+      valFactor.detail = `Subject ${fmtMoney(subjectPerSqm, state.a.currency)}/m² vs comps avg ${fmtMoney(compAvgPerSqm, state.a.currency)}/m² (${disc>=0?"+":""}${(disc*100).toFixed(1)}%)`;
+    } else {
+      valFactor.pts = 55; valFactor.detail = "Insufficient comp data";
+    }
+  }
+  // recompute weighted
+  let ws = 0, w = 0;
+  score.factors.forEach(f => { ws += f.pts * f.weight; w += f.weight; });
+  score.score = Math.round(ws / w);
+  if (score.score >= 75) score.rec = "Attractive";
+  else if (score.score >= 55) score.rec = "Watchlist";
+  else if (score.score >= 40) score.rec = "Caution";
+  else score.rec = "Uninvestable";
+
+  $("scoreVal").textContent = score.score + " / 100";
+  $("scoreBar").style.width = score.score + "%";
+  $("scoreRec").textContent = score.rec;
+  $("scoreRec").className = "rec " + score.rec.toLowerCase().replace(/\s/g,'');
+
+  const conf = dataConfidence(state.a, state.comps, state.benchmarks);
+  $("confVal").textContent = conf + " / 100";
+  $("confBar").style.width = conf + "%";
+  $("riskRec").textContent = "Risk: " + score.risk;
+  $("riskRec").className = "rec";
+
+  $("scoreFactors").innerHTML = `
+    <table class="tbl" style="font-size:12px;">
+      <thead><tr><th style="text-align:left;">Factor</th><th>Weight</th><th>Score</th><th style="text-align:left;">Detail</th></tr></thead>
+      <tbody>
+        ${score.factors.map(f => `
+          <tr>
+            <td>${f.name}</td>
+            <td class="num">${f.weight}</td>
+            <td class="num">${Math.round(f.pts)}</td>
+            <td>${f.detail}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+
+  // KPIs depend on score so refresh
+  renderKPIs(r, score);
+  renderUW(r);
+  renderInjection(r, score);
+  renderProjections(r);
+  return { r, score };
+}
+
+// =========================================================
+//  RENDER: Investment memo
+// =========================================================
+function renderMemo() {
+  const r = compute(state.a);
+  const score = scoreInvestment(state.a, r, state.benchmarks);
+  const ccy = state.a.currency;
+
+  // build narrative
+  const depAvg = score.depAvg, bondAvg = score.bondAvg, reitAvg = score.reitAvg;
+  const cocSpread = r.coc0 != null ? (r.coc0 - depAvg) : null;
+  const capSpread = r.capRate0 != null ? (r.capRate0 - bondAvg) : null;
+  const irrVsReit = r.leveredIRR != null ? r.leveredIRR - reitAvg : null;
+  const irrVsBond = r.leveredIRR != null ? r.leveredIRR - bondAvg : null;
+
+  // comp positioning
+  const subjectPerSqm = safeDiv(N(state.a.purchasePrice), N(state.a.buildSqm));
+  const compsPerSqm = state.comps.map(c => safeDiv(N(c.askPrice), N(c.buildSqm))).filter(x => x && isFinite(x));
+  const compAvgPerSqm = compsPerSqm.length ? compsPerSqm.reduce((a,b)=>a+b,0)/compsPerSqm.length : null;
+  const valPos = compAvgPerSqm && subjectPerSqm ? (subjectPerSqm < compAvgPerSqm ? "below" : "above") : null;
+  const valGap = compAvgPerSqm && subjectPerSqm ? Math.abs((subjectPerSqm - compAvgPerSqm) / compAvgPerSqm) : null;
+
+  const mkt = MARKETS[state.a.market].name;
+  const irrAttract = r.leveredIRR != null && r.leveredIRR >= reitAvg + 0.03;
+  const cocAttract = cocSpread != null && cocSpread >= 0.02;
+
+  const memo = `
+    <h4>Headline</h4>
+    <p>The subject villa <strong>${state.a.villaName}</strong> in ${state.a.location} is underwritten at a total project cost of <span class="num">${fmtMoney(r.totalProjectCost, ccy, true)}</span> against an injected capital of <span class="num">${fmtMoney(r.inj, ccy, true)}</span>. Year-1 NOI is <span class="num">${fmtMoney(r.noi0, ccy, true)}</span>, implying a cap rate of <span class="num">${pct(r.capRate0)}</span> on the purchase price and a Year-1 cash-on-cash of <span class="num">${pct(r.coc0)}</span>. Levered IRR over a ${state.a.holdYears}-year hold is <span class="num">${pct(r.leveredIRR)}</span> with an equity multiple of <span class="num">${fmtX(r.equityMultiple)}</span>.</p>
+
+    <h4>Yield premium vs ${mkt} alternatives</h4>
+    <p>The villa offers a Year-1 cash yield ${(cocSpread ?? 0) >= 0 ? "premium" : "deficit"} of <span class="num ${(cocSpread ?? 0) >= 0 ? 'pos' : 'neg'}">${bps(cocSpread ?? 0)}</span> over ${mkt} fixed deposits / money-market funds (avg ${pct(depAvg)}). The stabilized cap rate sits <span class="num ${(capSpread ?? 0) >= 0 ? 'pos' : 'neg'}">${bps(capSpread ?? 0)}</span> ${(capSpread ?? 0) >= 0 ? "above" : "below"} sovereign-bond/T-bill yields (avg ${pct(bondAvg)}). Levered IRR runs <span class="num ${(irrVsReit ?? 0) >= 0 ? 'pos' : 'neg'}">${bps(irrVsReit ?? 0)}</span> versus listed REIT dividend yields (avg ${pct(reitAvg)}) and <span class="num ${(irrVsBond ?? 0) >= 0 ? 'pos' : 'neg'}">${bps(irrVsBond ?? 0)}</span> over government bonds.</p>
+
+    <h4>Comp positioning</h4>
+    <p>${valPos
+      ? `Against ${state.comps.length} comparable villas, the subject is priced <strong>${valPos}</strong> the comp set on a $/m² basis by approximately <span class="num">${(valGap*100).toFixed(1)}%</span> (subject ${fmtMoney(subjectPerSqm, ccy)}/m² vs comps avg ${fmtMoney(compAvgPerSqm, ccy)}/m²).`
+      : `Insufficient comp data to position the subject — add at least 3 comps with ask price and build sqm filled in.`}</p>
+
+    <h4>Capital injection verdict</h4>
+    <p>On the injected capital of <span class="num">${fmtMoney(r.inj, ccy, true)}</span>, the implied IRR is <span class="num">${pct(r.injIRR)}</span> with equity multiple <span class="num">${fmtX(r.injEM)}</span>. ${r.injIRR != null && r.injIRR >= Math.max(...state.benchmarks.map(b => N(b.yield)/100), 0) + 0.04
+      ? `<span class="pos">The IRR clears the highest yield benchmark plus a ~4% illiquidity premium, suggesting the injection is compensated for the operational complexity and illiquidity inherent in owning a villa.</span>`
+      : `<span class="neg">The IRR does not clearly exceed the highest yield benchmark plus a ~4% illiquidity premium. The risk-adjusted case for the injection is weak unless ADR or occupancy upside is realized.</span>`}</p>
+
+    <h4>Main risks</h4>
+    <p>${[
+      r.dscr0 < 1.25 ? "DSCR is thin — debt service consumes most of NOI; small ADR misses cause coverage breaches." : null,
+      r.occ0 > 0.78 ? "Underwritten occupancy is aggressive vs Bali / luxury-villa averages." : null,
+      r.opexRatio0 > 0.55 ? "Opex ratio is elevated — mgmt fees, OTA take-rate, and staff costs together compress NOI." : null,
+      "Illiquidity: a villa cannot be partially or quickly redeemed unlike deposits, T-bills or listed REIT units.",
+      "Currency & jurisdiction risk where the deal currency differs from the investor's home market.",
+      "CapEx burden: tropical / coastal villas require periodic refurbishment that materially eats into long-term IRR."
+    ].filter(Boolean).join(" ")}</p>
+
+    <h4>Upside levers</h4>
+    <p>Realistic levers include: yield-management to raise ADR by 5–10% in peak season, reducing OTA fee dependency by building direct-channel demand, contracting a branded operator to lift occupancy, and re-financing once stabilized to lower the rate burden — each of which would compress the IRR gap vs REIT and sovereign alternatives.</p>
+
+    <h4>Liquidity & complexity tradeoff</h4>
+    <p>Compared with listed REIT income, the villa offers a ${(irrVsReit ?? 0) >= 0 ? "higher" : "lower"} headline return but materially lower liquidity, no daily mark-to-market, and a much higher operational and reputational burden. For an investor whose alternative is a basket of ${mkt} deposits, government bonds, and REIT dividends, the villa is ${irrAttract && cocAttract ? "competitive on yield, but only if the underwritten ADR and occupancy hold" : "not clearly compelling on a risk-adjusted basis at current assumptions"}.</p>
+  `;
+  $("memoBox").innerHTML = memo;
+}
+
+// =========================================================
+//  RENDER: Risk matrix
+// =========================================================
+function renderRiskMatrix() {
+  // Define qualitative ratings (0..5 dots) for [villa, cash, govt, mmf, reit, sukuk]
+  const rows = [
+    ["Liquidity (speed of exit)",    [1, 5, 4, 5, 5, 3]],
+    ["Mark-to-market volatility",    [1, 0, 2, 0, 4, 2]],
+    ["Income predictability",        [2, 5, 5, 5, 3, 4]],
+    ["Capital preservation",         [2, 5, 5, 5, 3, 4]],
+    ["Operational burden",           [5, 0, 0, 0, 1, 1]],
+    ["Inflation linkage / upside",   [4, 1, 1, 1, 3, 1]],
+    ["Currency mismatch risk",       [4, 2, 2, 2, 3, 2]],
+    ["Regulatory / jurisdictional",  [4, 1, 1, 1, 2, 2]],
+    ["Reinvestment / CapEx need",    [5, 0, 0, 0, 1, 0]],
+  ];
+  const tbody = $("riskMatrix").querySelector("tbody");
+  tbody.innerHTML = rows.map(([dim, vals]) => `
+    <tr>
+      <td style="text-align:left;">${dim}</td>
+      ${vals.map(v => `<td>${renderDots(v)}</td>`).join("")}
+    </tr>`).join("");
+}
+function renderDots(n) {
+  let out = "";
+  for (let i = 0; i < 5; i++) out += `<span class="dot-rating ${i < n ? "on" : ""}"></span>`;
+  return out;
+}
+
+// =========================================================
+//  EXPORTS
+// =========================================================
+function download(name, content, mime = "text/plain") {
+  const blob = new Blob([content], { type: mime + ";charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 500);
+}
+function csvEscape(v) {
+  if (v == null) return "";
+  const s = String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+function toCSV(headers, rows) {
+  return [headers.map(csvEscape).join(","), ...rows.map(r => r.map(csvEscape).join(","))].join("\n");
+}
+
+function exportJson() {
+  const out = {
+    generatedAt: new Date().toISOString(),
+    assumptions: state.a,
+    benchmarks: state.benchmarks,
+    comps: state.comps,
+  };
+  download(`villa-roi-${slug(state.a.villaName)}.json`, JSON.stringify(out, null, 2), "application/json");
+}
+function exportUWSummary() {
+  const r = compute(state.a);
+  const score = scoreInvestment(state.a, r, state.benchmarks);
+  const ccy = state.a.currency;
+  const rows = [
+    ["Purchase price", r.purchase, ccy],
+    ["Closing costs", r.closing, ccy],
+    ["Renovation", r.reno, ccy],
+    ["Furnishing", r.furnish, ccy],
+    ["Legal fees", r.legal, ccy],
+    ["Total project cost", r.totalProjectCost, ccy],
+    ["Loan amount", r.loanAmt, ccy],
+    ["Equity invested", r.equityCash, ccy],
+    ["Year-1 NOI", r.noi0, ccy],
+    ["Year-1 debt service", r.debtSvc0, ccy],
+    ["Year-1 pre-tax CF", r.cf0, ccy],
+    ["Cap rate", r.capRate0, "ratio"],
+    ["Cash-on-Cash Y1", r.coc0, "ratio"],
+    ["DSCR Y1", r.dscr0, "x"],
+    ["Break-even occupancy", r.beOcc, "ratio"],
+    ["Levered IRR", r.leveredIRR, "ratio"],
+    ["Unlevered IRR", r.unleveredIRR, "ratio"],
+    ["Equity multiple", r.equityMultiple, "x"],
+    ["ROI total", r.roiTotal, "ratio"],
+    ["Payback (yrs)", r.paybackYear, "yrs"],
+    ["Exit value", r.exitValue, ccy],
+    ["Net sale proceeds", r.netSaleProceeds, ccy],
+    ["Score", score.score, "/100"],
+    ["Recommendation", score.rec, ""],
+    ["Risk", score.risk, ""],
+  ];
+  download(`villa-roi-summary-${slug(state.a.villaName)}.csv`, toCSV(["Metric","Value","Unit"], rows));
+}
+function exportComps() {
+  const headers = ["Name","Location","Bedrooms","LandSqm","BuildSqm","AskPrice","Currency","ADR","Occupancy%","Source","Confidence"];
+  const rows = state.comps.map(c => [c.name, c.location, c.bedrooms, c.landSqm, c.buildSqm, c.askPrice, c.currency, c.adr, c.occPct, c.source, c.confidence]);
+  download(`villa-comps-${slug(state.a.villaName)}.csv`, toCSV(headers, rows));
+}
+function exportBench() {
+  const headers = ["Name","Type","Tenor","Yield%","Liquidity","Risk","Source","Market"];
+  const rows = state.benchmarks.map(b => [b.name, b.type, b.tenor, b.yield, b.liquidity, b.risk, b.source, state.a.market]);
+  download(`yield-benchmarks-${state.a.market}.csv`, toCSV(headers, rows));
+}
+function copyMemo() {
+  const text = $("memoBox").innerText;
+  navigator.clipboard?.writeText(text).then(() => {
+    const btn = $("copyMemo");
+    const orig = btn.textContent;
+    btn.textContent = "Copied ✓";
+    setTimeout(() => btn.textContent = orig, 1400);
+  });
+}
+function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"").slice(0, 40); }
+
+// =========================================================
+//  Master render
+// =========================================================
+function renderAll() {
+  renderBenchmarks();
+  renderComps();
+  const { r } = renderScore(); // also renders KPIs, UW, projections, injection
+  renderMemo();
+  renderCharts();
+  // heatmaps
+  const a = state.a;
+  const adrBase = N(a.adr); const occBase = N(a.occupancyPct);
+  const adrVals = [adrBase*0.75, adrBase*0.9, adrBase, adrBase*1.1, adrBase*1.25];
+  const adrLbls = adrVals.map(v => fmtMoney(v, a.currency));
+  const occVals = [40, 55, 65, 75, 85];
+  const occLbls = occVals.map(v => v + "%");
+  renderHeat("heat1", "adr", adrLbls, adrVals, "occupancyPct", occLbls, occVals);
+
+  const capVals = [4.5, 5.5, 6.5, 7.5, 8.5];
+  const capLbls = capVals.map(v => v + "%");
+  const inflVals = [2, 3, 4, 5, 6];
+  const inflLbls = inflVals.map(v => v + "%");
+  renderHeat("heat2", "exitCapRatePct", capLbls, capVals, "opexInflationPct", inflLbls, inflVals);
+}
+
+// =========================================================
+//  Boot
+// =========================================================
+document.addEventListener("DOMContentLoaded", () => {
+  document.documentElement.setAttribute("data-theme", state.theme);
+  initSelects();
+  loadInputs();
+  bindInputs();
+  renderRiskMatrix();
+  renderAll();
+});
+
+</script>
+</body>
+</html>
